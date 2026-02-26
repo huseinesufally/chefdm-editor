@@ -147,7 +147,7 @@
       font-family:'SF Pro Text',-apple-system,BlinkMacSystemFont,sans-serif;
     }
     body.preview-mode {
-      background:linear-gradient(160deg,#1a1a2e 0%,#0d0d1a 100%);
+      background:#1A1A1A;
       min-height:100vh; padding:60px 0 120px;
       display:flex; justify-content:center; align-items:flex-start;
     }
@@ -162,8 +162,8 @@
     body.figma-capture-mode .msg-controls  { display:none !important; }
     body.preview-mode .add-msg-bar         { display:none; }
     body.figma-capture-mode .add-msg-bar   { display:none; }
-    body.preview-mode [contenteditable]    { outline:none !important; cursor:default; }
-    body.figma-capture-mode [contenteditable] { outline:none !important; cursor:default; }
+    body.preview-mode [contenteditable]      { outline:none !important; cursor:default; pointer-events:none; user-select:none; }
+    body.figma-capture-mode [contenteditable]{ outline:none !important; cursor:default; pointer-events:none; user-select:none; }
 
     /* ── SEND TO FIGMA OVERLAY ── */
     #figma-ready-overlay {
@@ -299,7 +299,7 @@
     .msg-right { max-width:660px; }
     .bubble-right {
       border-radius:50px; padding:20px 30px;
-      font-size:40px; font-weight:400; letter-spacing:0; line-height:1.35;
+      font-size:40px; font-weight:400; letter-spacing:0 !important; line-height:1.35;
       word-break:break-word;
     }
 
@@ -311,7 +311,7 @@
     .bubbles-col { display:flex; flex-direction:column; gap:15px; align-items:flex-start; max-width:762px; }
     .bubble-left {
       background:#efefef; padding:20px 30px; max-width:700px;
-      font-size:40px; font-weight:400; color:#000; letter-spacing:0; line-height:1.35;
+      font-size:40px; font-weight:400; color:#000; letter-spacing:0 !important; line-height:1.35;
       word-break:break-word;
     }
     .bubble-first { border-radius:50px 50px 50px 20px; }
@@ -331,7 +331,7 @@
     .reaction-dot { position:relative; width:80px; height:80px; flex-shrink:0; }
     .rdot-bg  { position:absolute; top:0; left:0; width:80px; height:80px; }
     .rdot-ico { position:absolute; top:26px; left:20px; width:40px; height:35px; object-fit:contain; mix-blend-mode:multiply; }
-    .reaction-pill-row { padding-left:130px; margin-top:4px; }
+    .reaction-pill-row { padding-left:130px; margin-top:-16px; position:relative; z-index:2; }
     .reaction-pill {
       display:inline-flex; align-items:center; justify-content:center;
       background:#efefef; border:6px solid #fff; border-radius:50px;
@@ -358,11 +358,25 @@
     .bottom-banner { width:1138px; height:146px; margin:10px auto 20px; overflow:hidden; border-radius:8px; }
     .bottom-banner img { width:100%; height:100%; object-fit:cover; display:block; }
 
-    /* Editable highlights */
-    [contenteditable]:hover { outline:2px dashed rgba(88,76,245,.3); outline-offset:3px; border-radius:4px; cursor:text; }
-    [contenteditable]:focus { outline:2px solid #584cf5; outline-offset:3px; border-radius:4px; }
-    body.preview-mode [contenteditable]      { outline:none !important; }
-    body.figma-capture-mode [contenteditable]{ outline:none !important; }
+    /* Editable — no outlines, frosted glass hierarchy instead */
+    [contenteditable] { outline:none !important; cursor:text; }
+
+    /* Smooth transitions for all chat regions */
+    .msg-outer, .dm-header, .bottom-banner, .add-msg-bar {
+      transition: filter .22s ease, opacity .22s ease;
+    }
+    /* When editing: blur everything except the active bubble */
+    body.editing-mode .msg-outer:not(.editing-active) {
+      filter: blur(3px); opacity: 0.35;
+    }
+    body.editing-mode .dm-header,
+    body.editing-mode .bottom-banner,
+    body.editing-mode .add-msg-bar {
+      filter: blur(3px); opacity: 0.35;
+    }
+    body.editing-mode .editing-active {
+      position: relative; z-index: 10;
+    }
   </style>
 </head>
 <body>
@@ -936,6 +950,26 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     document.execCommand('insertLineBreak');
   }
+});
+
+// ─── FROSTED GLASS FOCUS HIERARCHY ───────────────────────────────────────────
+document.addEventListener('focusin', e => {
+  if (!e.target.hasAttribute('contenteditable')) return;
+  if (document.body.classList.contains('preview-mode') ||
+      document.body.classList.contains('figma-capture-mode')) return;
+  document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
+  document.body.classList.add('editing-mode');
+  const msgOuter = e.target.closest('.msg-outer');
+  if (msgOuter) msgOuter.classList.add('editing-active');
+});
+
+document.addEventListener('focusout', e => {
+  if (!e.target.hasAttribute('contenteditable')) return;
+  requestAnimationFrame(() => {
+    if (document.querySelector('[contenteditable]:focus')) return;
+    document.body.classList.remove('editing-mode');
+    document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
+  });
 });
 
 window.addEventListener('load', () => {
