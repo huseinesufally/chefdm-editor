@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200">
+  <title>Chef DM Editor</title>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    /* ── FONTS ── */
+    @font-face { font-family:'Sailec'; src:local('Sailec-Regular'),local('Sailec Regular'); font-weight:400; }
+    @font-face { font-family:'Sailec'; src:local('Sailec-Medium'),local('Sailec Medium'); font-weight:500; }
+    @font-face { font-family:'Sailec'; src:local('Sailec-Bold'),local('Sailec Bold'); font-weight:700; }
+    @font-face { font-family:'SF Pro Text'; src:local('SFProText-Regular'),local('.SFProText-Regular'); font-weight:400; }
+    @font-face { font-family:'SF Pro Text'; src:local('SFProText-Semibold'),local('.SFProText-Semibold'); font-weight:600; }
+    @font-face { font-family:'SF Pro Display'; src:local('SFProDisplay-Semibold'),local('.SFProDisplay-Semibold'); font-weight:600; }
+
+    --ui-font: 'Sailec', -apple-system, system-ui, sans-serif;
+
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+    /* ── EDITOR BAR (light) ── */
+    .editor-bar {
+      position:fixed; top:0; left:0; right:0; z-index:9000;
+      background:#fff; color:#000;
+      padding:0 24px; height:56px;
+      display:flex; align-items:center; gap:14px;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif; font-size:13px;
+      border-bottom:1px solid #e8e8e8;
+      box-shadow:0 1px 6px rgba(0,0,0,.05);
+    }
+    .editor-bar-logo {
+      display:flex; align-items:center; gap:10px;
+      padding-right:16px; border-right:1px solid #e8e8e8;
+    }
+    .editor-bar-logo-dot {
+      width:22px; height:22px; background:#000; border-radius:5px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .editor-bar-logo-dot svg { display:block; }
+    .editor-bar-title { font-weight:700; font-size:13px; color:#000; letter-spacing:-.2px; }
+    .editor-bar-hint  { color:#999; font-size:12px; font-weight:400; }
+    .editor-bar-right { margin-left:auto; display:flex; gap:8px; align-items:center; }
+    .editor-bar-divider { width:1px; height:20px; background:#e8e8e8; margin:0 4px; }
+
+    /* ── BUTTONS (Dorsia Exec) ── */
+    .btn {
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+      font-size:12px; font-weight:500; letter-spacing:-.1px;
+      padding:0 16px; height:34px; border-radius:100px;
+      border:none; cursor:pointer; transition:all .15s;
+      display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    }
+    .btn-outline {
+      background:transparent; color:#000;
+      border:1px solid #d4d4d4;
+    }
+    .btn-outline:hover { background:#f5f5f5; border-color:#aaa; }
+    .btn-ghost { background:transparent; color:#666; border:none; }
+    .btn-ghost:hover { background:#f5f5f5; color:#000; }
+    .btn-dark {
+      background:#000; color:#fff; border:1px solid #000;
+    }
+    .btn-dark:hover { background:#222; }
+    .btn-figma {
+      background:#584cf5; color:#fff; border:1px solid #584cf5;
+    }
+    .btn-figma:hover { background:#4a3fe0; }
+    .btn-danger { background:transparent; color:#c0392b; border:1px solid #f5c6c2; }
+    .btn-danger:hover { background:#fef2f2; }
+
+    /* ── PARTICIPANTS PANEL (light) ── */
+    #participants-panel {
+      position:fixed; top:0; right:0; bottom:0; width:320px; z-index:8999;
+      background:#fff; color:#000;
+      padding:64px 20px 24px;
+      border-left:1px solid #e8e8e8;
+      transform:translateX(100%); transition:transform .25s ease;
+      overflow-y:auto;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+      box-shadow:-4px 0 24px rgba(0,0,0,.06);
+    }
+    #participants-panel.open { transform:translateX(0); }
+    .panel-title {
+      font-weight:700; font-size:14px; color:#000;
+      margin-bottom:20px; letter-spacing:-.2px;
+    }
+    .participant-card {
+      background:#f8f8f8; border-radius:10px;
+      padding:14px; margin-bottom:10px;
+      border:1px solid #ebebeb;
+    }
+    .participant-card-header {
+      display:flex; align-items:center; gap:12px; margin-bottom:12px;
+    }
+    .p-avatar-wrap { position:relative; width:48px; height:48px; flex-shrink:0; }
+    .p-avatar {
+      width:48px; height:48px; border-radius:50%; object-fit:cover;
+      background:#e0e0e0; display:block;
+    }
+    .p-avatar-btn {
+      position:absolute; inset:0; background:rgba(0,0,0,.5); border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; cursor:pointer; transition:opacity .2s;
+      font-size:10px; font-weight:600; color:white;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+    }
+    .p-avatar-wrap:hover .p-avatar-btn { opacity:1; }
+    .p-fields { flex:1; display:flex; flex-direction:column; gap:6px; }
+    .p-input {
+      background:#fff; border:1px solid #e0e0e0; border-radius:6px;
+      color:#000; font-size:12px; padding:7px 10px; width:100%;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+      outline:none;
+    }
+    .p-input:focus { border-color:#584cf5; box-shadow:0 0 0 3px rgba(88,76,245,.1); }
+    .p-label { font-size:11px; color:#888; margin-bottom:2px; font-weight:500; }
+    .p-section-label {
+      font-size:10px; font-weight:700; color:#999; letter-spacing:.06em;
+      text-transform:uppercase; margin-bottom:10px;
+    }
+    .p-color-row { display:flex; align-items:center; gap:10px; margin-top:4px; }
+    .p-color-swatches { display:flex; gap:6px; flex-wrap:wrap; }
+    .color-swatch {
+      width:22px; height:22px; border-radius:6px; cursor:pointer;
+      border:2px solid transparent; transition:all .15s;
+    }
+    .color-swatch.active { border-color:#000; box-shadow:0 0 0 1px #000; }
+    .color-swatch:hover { transform:scale(1.1); }
+    .p-toggle { display:flex; align-items:center; justify-content:space-between; }
+    .toggle-switch { position:relative; width:36px; height:20px; cursor:pointer; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-track {
+      position:absolute; inset:0; background:#ddd; border-radius:10px; transition:background .2s;
+    }
+    .toggle-track::before {
+      content:''; position:absolute; left:3px; top:3px;
+      width:14px; height:14px; background:white; border-radius:50%;
+      transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,.2);
+    }
+    .toggle-switch input:checked + .toggle-track { background:#000; }
+    .toggle-switch input:checked + .toggle-track::before { transform:translateX(16px); }
+    .p-inactive { opacity:.4; pointer-events:none; }
+
+    /* ── BODY ── */
+    body {
+      background:#f0f0f0; padding-top:56px;
+      font-family:'SF Pro Text',-apple-system,BlinkMacSystemFont,sans-serif;
+    }
+    body.preview-mode {
+      background:linear-gradient(160deg,#1a1a2e 0%,#0d0d1a 100%);
+      min-height:100vh; padding:60px 0 120px;
+      display:flex; justify-content:center; align-items:flex-start;
+    }
+    body.figma-capture-mode {
+      background:white; padding:0;
+    }
+    body.preview-mode .editor-bar         { display:none; }
+    body.figma-capture-mode .editor-bar   { display:none; }
+    body.preview-mode #participants-panel  { display:none; }
+    body.figma-capture-mode #participants-panel { display:none; }
+    body.preview-mode .msg-controls        { display:none !important; }
+    body.figma-capture-mode .msg-controls  { display:none !important; }
+    body.preview-mode .add-msg-bar         { display:none; }
+    body.figma-capture-mode .add-msg-bar   { display:none; }
+    body.preview-mode [contenteditable]    { outline:none !important; cursor:default; }
+    body.figma-capture-mode [contenteditable] { outline:none !important; cursor:default; }
+
+    /* ── SEND TO FIGMA OVERLAY ── */
+    #figma-ready-overlay {
+      display:none; position:fixed; inset:0; z-index:99999;
+      background:rgba(0,0,0,.7); backdrop-filter:blur(12px);
+      align-items:center; justify-content:center;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+    }
+    #figma-ready-overlay.show { display:flex; }
+    .figma-ready-card {
+      background:#fff; border-radius:20px; padding:36px 40px; max-width:420px; text-align:center;
+      box-shadow:0 32px 80px rgba(0,0,0,.4);
+    }
+    .figma-ready-icon { font-size:40px; margin-bottom:16px; }
+    .figma-ready-title { font-size:20px; font-weight:700; color:#000; margin-bottom:8px; }
+    .figma-ready-body  { font-size:14px; color:#666; line-height:1.5; margin-bottom:24px; }
+    .figma-ready-url {
+      background:#f5f5f5; border-radius:8px; padding:10px 14px;
+      font-size:12px; color:#333; word-break:break-all;
+      margin-bottom:24px; text-align:left; font-family:monospace;
+    }
+    .figma-ready-actions { display:flex; gap:10px; justify-content:center; }
+
+    /* ── iPHONE FRAME ── */
+    #iphone-frame {
+      position:relative; width:540px;
+      background:#1c1c1e; border-radius:56px; padding:16px;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.13),inset 0 0 0 2.5px #2c2c2e,
+        0 50px 120px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.6);
+      flex-shrink:0;
+    }
+    .iphone-btn { position:absolute; background:#2c2c2e; border-radius:3px; }
+    .iphone-mute     { left:-4px; top:116px; width:4px; height:30px; }
+    .iphone-vol-up   { left:-4px; top:170px; width:4px; height:62px; }
+    .iphone-vol-down { left:-4px; top:248px; width:4px; height:62px; }
+    .iphone-power    { right:-4px; top:196px; width:4px; height:80px; }
+    .iphone-screen   { background:white; border-radius:42px; overflow:hidden; display:flex; flex-direction:column; }
+    .iphone-status   {
+      position:relative; height:54px; background:white;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 28px; flex-shrink:0; z-index:5;
+    }
+    .iphone-time { font-family:'SF Pro Text',-apple-system,sans-serif; font-size:15px; font-weight:600; letter-spacing:-.2px; }
+    .iphone-island {
+      position:absolute; top:11px; left:50%; transform:translateX(-50%);
+      width:126px; height:36px; background:#000; border-radius:20px;
+    }
+    .iphone-status-icons { display:flex; align-items:center; gap:6px; }
+    .iphone-content-outer { overflow:hidden; position:relative; }
+    .iphone-home { height:34px; background:white; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .iphone-home::before { content:''; width:134px; height:5px; background:#000; border-radius:3px; opacity:.18; }
+
+    /* ── DM FRAME ── */
+    #dm-design {
+      width:1200px; margin:20px auto;
+      background:white; border-top:1px solid #dbdbdb; border-bottom:1px solid #dbdbdb; overflow:visible;
+    }
+    body.figma-capture-mode #dm-design { margin:0; }
+
+    /* ── HEADER ── */
+    .dm-header { position:relative; height:210px; border-bottom:1px solid #dbdbdb; }
+    .back-arrow { position:absolute; left:63px; top:94px; width:20px; height:38px; object-fit:contain; }
+    .profile-area { position:absolute; left:151px; top:62px; display:flex; align-items:center; gap:26px; }
+    .profile-photo-wrap { position:relative; width:104px; height:104px; flex-shrink:0; }
+    .profile-photo { width:104px; height:104px; border-radius:50%; object-fit:cover; display:block; }
+    .profile-replace-btn {
+      position:absolute; inset:0; background:rgba(0,0,0,.5); border-radius:50%;
+      display:flex; align-items:center; justify-content:center; opacity:0; cursor:pointer; transition:opacity .2s;
+      color:white; font-family:'Sailec',-apple-system,sans-serif; font-size:11px; font-weight:600; text-align:center;
+    }
+    .profile-photo-wrap:hover .profile-replace-btn { opacity:1; }
+    .profile-name {
+      font-family:'SF Pro Display',-apple-system,sans-serif;
+      font-size:43px; font-weight:600; color:#000; letter-spacing:0; line-height:1.35; white-space:nowrap;
+    }
+    .profile-handle { font-size:33px; font-weight:400; color:#737373; letter-spacing:0; line-height:1.35; margin-top:2px; white-space:nowrap; }
+    .dorsia-logo { position:absolute; right:63px; top:83px; height:59px; width:196px; object-fit:contain; }
+
+    /* ── MESSAGES ── */
+    #messages-container {
+      width:1080px; margin:0 auto; padding:30px 0 20px;
+      display:flex; flex-direction:column; gap:30px;
+    }
+
+    /* Message row wrapper */
+    .msg-outer { position:relative; display:flex; flex-direction:column; }
+    .msg-outer[data-side="right"] { align-items:flex-end; }
+    .msg-outer[data-side="left"]  { align-items:flex-start; }
+    .msg-outer:hover .msg-controls { opacity:1; }
+
+    /* Controls overlay */
+    .msg-controls {
+      position:absolute; top:-12px; right:0; z-index:100;
+      display:flex; align-items:center; gap:5px;
+      opacity:0; transition:opacity .15s;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+    }
+    .msg-outer[data-side="left"] .msg-controls { right:auto; left:0; }
+    .msg-controls select {
+      font-size:11px; font-weight:500; padding:4px 8px; border-radius:100px;
+      background:#000; color:white; border:none; cursor:pointer; outline:none;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+    }
+    .ctrl-btn {
+      height:26px; padding:0 10px; border-radius:100px; border:none; cursor:pointer;
+      font-size:12px; font-weight:600; display:inline-flex; align-items:center;
+      transition:opacity .15s; font-family:'Sailec',-apple-system,system-ui,sans-serif;
+    }
+    .ctrl-btn:hover { opacity:.75; }
+    .ctrl-del  { background:#c0392b; color:white; font-size:14px; padding:0 9px; }
+    .ctrl-react { background:#fff; color:#000; border:1px solid #e0e0e0; font-size:14px; padding:0 8px; }
+
+    /* Emoji picker */
+    #emoji-picker {
+      position:fixed; z-index:99999;
+      background:#fff; border:1px solid #e8e8e8; border-radius:12px;
+      padding:8px; display:flex; gap:4px; flex-wrap:wrap; max-width:220px;
+      box-shadow:0 8px 32px rgba(0,0,0,.14);
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+    }
+    .emoji-opt {
+      width:36px; height:36px; border-radius:8px; border:none; cursor:pointer;
+      font-size:20px; background:transparent; display:flex; align-items:center; justify-content:center;
+      transition:background .1s;
+    }
+    .emoji-opt:hover { background:#f0f0f0; }
+    .emoji-clear {
+      font-size:13px; color:#999; font-weight:700;
+      border:1px solid #e8e8e8; border-radius:8px; width:36px; height:36px;
+    }
+
+    /* Right bubble (Dorsia) */
+    .msg-right { max-width:660px; }
+    .bubble-right {
+      border-radius:50px; padding:20px 30px;
+      font-size:40px; font-weight:400; letter-spacing:0; line-height:1.35;
+      word-break:break-word;
+    }
+
+    /* Left bubble (Chef / Person3) */
+    .msg-left-row { display:flex; gap:40px; align-items:flex-end; width:100%; }
+    .msg-left-group { display:flex; flex-direction:column; width:100%; }
+    .avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+    .avatar-spacer { width:80px; flex-shrink:0; }
+    .bubbles-col { display:flex; flex-direction:column; gap:15px; align-items:flex-start; max-width:762px; }
+    .bubble-left {
+      background:#efefef; padding:20px 30px; max-width:700px;
+      font-size:40px; font-weight:400; color:#000; letter-spacing:0; line-height:1.35;
+      word-break:break-word;
+    }
+    .bubble-first { border-radius:50px 50px 50px 20px; }
+    .bubble-cont  { border-radius:20px 50px 50px 20px; }
+
+    /* Photo message */
+    .photo-wrap { position:relative; width:447px; height:588px; flex-shrink:0; }
+    .food-photo { width:100%; height:100%; object-fit:cover; border-radius:20px 50px 50px 20px; display:block; }
+    .photo-replace-btn {
+      position:absolute; inset:0; background:rgba(0,0,0,.45); border-radius:20px 50px 50px 20px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+      opacity:0; cursor:pointer; transition:opacity .2s;
+      color:white; font-family:'Sailec',-apple-system,system-ui,sans-serif; font-size:14px; font-weight:600;
+    }
+    .photo-wrap:hover .photo-replace-btn { opacity:1; }
+    .photo-row { display:flex; gap:20px; align-items:center; }
+    .reaction-dot { position:relative; width:80px; height:80px; flex-shrink:0; }
+    .rdot-bg  { position:absolute; top:0; left:0; width:80px; height:80px; }
+    .rdot-ico { position:absolute; top:26px; left:20px; width:40px; height:35px; object-fit:contain; mix-blend-mode:multiply; }
+    .reaction-pill-row { padding-left:130px; margin-top:4px; }
+    .reaction-pill {
+      display:inline-flex; align-items:center; justify-content:center;
+      background:#efefef; border:6px solid #fff; border-radius:50px;
+      padding:10px 20px; font-size:40px; line-height:1; letter-spacing:0;
+    }
+
+    /* ── ADD MESSAGE BAR ── */
+    .add-msg-bar {
+      width:1080px; margin:0 auto; padding:16px 0 30px;
+      display:flex; gap:10px; align-items:center;
+    }
+    .add-msg-btn {
+      display:flex; align-items:center; gap:7px;
+      padding:9px 18px; border-radius:100px;
+      border:1.5px dashed #ccc;
+      background:transparent; cursor:pointer;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+      font-size:12px; font-weight:500; color:#666; transition:all .15s;
+    }
+    .add-msg-btn:hover { background:#f5f5f5; border-color:#999; color:#000; }
+    .add-msg-dot { width:14px; height:14px; border-radius:50%; display:inline-block; flex-shrink:0; }
+
+    /* ── BOTTOM BANNER ── */
+    .bottom-banner { width:1138px; height:146px; margin:10px auto 20px; overflow:hidden; border-radius:8px; }
+    .bottom-banner img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    /* Editable highlights */
+    [contenteditable]:hover { outline:2px dashed rgba(88,76,245,.3); outline-offset:3px; border-radius:4px; cursor:text; }
+    [contenteditable]:focus { outline:2px solid #584cf5; outline-offset:3px; border-radius:4px; }
+    body.preview-mode [contenteditable]      { outline:none !important; }
+    body.figma-capture-mode [contenteditable]{ outline:none !important; }
+  </style>
+</head>
+<body>
+
+<!-- EDITOR BAR -->
+<div class="editor-bar">
+  <div class="editor-bar-logo">
+    <div class="editor-bar-logo-dot">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="white">
+        <circle cx="6" cy="6" r="4.5" stroke="white" stroke-width="1.5" fill="none"/>
+        <circle cx="6" cy="6" r="1.5" fill="white"/>
+      </svg>
+    </div>
+    <span class="editor-bar-title">Chef DM</span>
+  </div>
+  <span class="editor-bar-hint">Click bubbles to edit · Hover for controls</span>
+  <div class="editor-bar-right">
+    <button class="btn btn-ghost" onclick="togglePanel()">Participants</button>
+    <button class="btn btn-ghost" onclick="newChat()">New Chat</button>
+    <div class="editor-bar-divider"></div>
+    <button class="btn btn-outline" onclick="enterPreview()">Preview</button>
+    <button class="btn btn-dark" onclick="sendToFigma()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19V5M5 12l7-7 7 7"/>
+      </svg>
+      Send to Figma
+    </button>
+  </div>
+</div>
+
+<!-- PARTICIPANTS PANEL -->
+<div id="participants-panel">
+  <div class="panel-title">Participants</div>
+
+  <!-- Dorsia -->
+  <div class="participant-card">
+    <div class="p-section-label">Dorsia · Right side</div>
+    <div class="p-color-row">
+      <span class="p-label">Bubble color</span>
+      <div class="p-color-swatches" id="dorsia-colors">
+        <div class="color-swatch active" style="background:#584cf5;" data-color="#584cf5" onclick="setParticipantColor('dorsia',this)" title="Dorsia purple"></div>
+        <div class="color-swatch" style="background:#000;" data-color="#000" onclick="setParticipantColor('dorsia',this)" title="Black"></div>
+        <div class="color-swatch" style="background:#D4A574;" data-color="#D4A574" onclick="setParticipantColor('dorsia',this)" title="Dorsia gold"></div>
+        <div class="color-swatch" style="background:#0095F6;" data-color="#0095F6" onclick="setParticipantColor('dorsia',this)" title="Instagram blue"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chef -->
+  <div class="participant-card">
+    <div class="p-section-label">Chef · Left side</div>
+    <div class="participant-card-header">
+      <div class="p-avatar-wrap">
+        <img id="p-chef-avatar" class="p-avatar" src="https://www.figma.com/api/mcp/asset/39e2594a-38e4-4467-bf9d-bcd5b341c7cd" alt="">
+        <div class="p-avatar-btn" onclick="replaceParticipantAvatar('chef')">Change</div>
+      </div>
+      <div class="p-fields">
+        <div><div class="p-label">Display name</div>
+          <input class="p-input" id="p-chef-name" value="Chef" placeholder="Label" onchange="updateParticipantLabel('chef',this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="p-color-row">
+      <span class="p-label">Bubble color</span>
+      <div class="p-color-swatches" id="chef-colors">
+        <div class="color-swatch active" style="background:#efefef;" data-color="#efefef" onclick="setParticipantColor('chef',this)" title="Instagram gray"></div>
+        <div class="color-swatch" style="background:#000;" data-color="#000" onclick="setParticipantColor('chef',this)" title="Black"></div>
+        <div class="color-swatch" style="background:#D4A574;" data-color="#D4A574" onclick="setParticipantColor('chef',this)" title="Dorsia gold"></div>
+        <div class="color-swatch" style="background:#584cf5;" data-color="#584cf5" onclick="setParticipantColor('chef',this)" title="Dorsia purple"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Person 3 -->
+  <div class="participant-card" id="p3-card">
+    <div class="p-toggle" style="margin-bottom:12px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#000;">Add 3rd Person</div>
+        <div class="p-label" style="margin-top:2px;">Appears on left side</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="p3-toggle" onchange="togglePerson3(this.checked)">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+    <div id="p3-fields" class="p-inactive">
+      <div class="participant-card-header">
+        <div class="p-avatar-wrap">
+          <img id="p-person3-avatar" class="p-avatar" src="" alt="" style="background:#ddd;">
+          <div class="p-avatar-btn" onclick="replaceParticipantAvatar('person3')">Set Photo</div>
+        </div>
+        <div class="p-fields">
+          <div><div class="p-label">Display name</div>
+            <input class="p-input" id="p3-name" value="Guest" placeholder="Name" onchange="updateParticipantLabel('person3',this.value)">
+          </div>
+        </div>
+      </div>
+      <div class="p-color-row">
+        <span class="p-label">Bubble color</span>
+        <div class="p-color-swatches" id="p3-colors">
+          <div class="color-swatch active" style="background:#efefef;" data-color="#efefef" onclick="setParticipantColor('person3',this)" title="Instagram gray"></div>
+          <div class="color-swatch" style="background:#000;" data-color="#000" onclick="setParticipantColor('person3',this)" title="Black"></div>
+          <div class="color-swatch" style="background:#D4A574;" data-color="#D4A574" onclick="setParticipantColor('person3',this)" title="Dorsia gold"></div>
+          <div class="color-swatch" style="background:#584cf5;" data-color="#584cf5" onclick="setParticipantColor('person3',this)" title="Dorsia purple"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEND TO FIGMA OVERLAY -->
+<div id="figma-ready-overlay">
+  <div class="figma-ready-card">
+    <div class="figma-ready-icon">↑</div>
+    <div class="figma-ready-title">Ready to send</div>
+    <div class="figma-ready-body">A clean version of your chat is open at this URL. Ask Claude to "send this to Figma" to import it.</div>
+    <div class="figma-ready-url" id="figma-capture-url"></div>
+    <div class="figma-ready-actions">
+      <button class="btn btn-outline" onclick="closeFigmaOverlay()">Cancel</button>
+      <button class="btn btn-dark" onclick="copyFigmaUrl()">Copy URL</button>
+    </div>
+  </div>
+</div>
+
+<!-- DM DESIGN -->
+<div id="dm-design">
+
+  <!-- HEADER (never changes) -->
+  <div class="dm-header">
+    <img class="back-arrow" src="https://www.figma.com/api/mcp/asset/26d30794-5c13-4a9f-8441-b1c21ef2b5a3" alt="">
+    <div class="profile-area">
+      <div class="profile-photo-wrap">
+        <img id="img-profile" class="profile-photo" src="https://www.figma.com/api/mcp/asset/b1e19405-436c-48c5-b9c1-053e8bc1356d" alt="">
+        <div class="profile-replace-btn" onclick="replacePhoto('img-profile')">Change</div>
+      </div>
+      <div>
+        <div class="profile-name" contenteditable="true" spellcheck="false">Fardad Khayami</div>
+        <div class="profile-handle" contenteditable="true" spellcheck="false">fardadk_</div>
+      </div>
+    </div>
+    <img class="dorsia-logo" src="https://www.figma.com/api/mcp/asset/4e46ecd5-4e99-4717-9fcd-c21cbfb4a6d6" alt="Dorsia">
+  </div>
+
+  <!-- MESSAGES (rendered by JS) -->
+  <div id="messages-container"></div>
+
+  <!-- ADD MESSAGE BAR -->
+  <div class="add-msg-bar" id="add-msg-bar">
+    <button class="add-msg-btn" onclick="addMessage('dorsia')">
+      <span class="add-msg-dot" style="background:#584cf5;"></span>+ Dorsia
+    </button>
+    <button class="add-msg-btn" onclick="addMessage('chef')">
+      <span class="add-msg-dot" style="background:#efefef; border:1px solid #ccc;"></span>+ Chef
+    </button>
+    <button class="add-msg-btn" id="add-p3-btn" style="display:none;" onclick="addMessage('person3')">
+      <span class="add-msg-dot" id="add-p3-dot" style="background:#d4f1eb; border:1px solid #ccc;"></span>
+      <span id="add-p3-label">+ Guest</span>
+    </button>
+  </div>
+
+  <!-- FOOTER BANNER (never changes) -->
+  <div class="bottom-banner">
+    <img src="https://www.figma.com/api/mcp/asset/d0f8bc37-dc4a-47fd-a405-0c44a5be3cf8" alt="">
+  </div>
+
+</div><!-- /dm-design -->
+
+<script>
+// ─── ASSETS ──────────────────────────────────────────────────────────────────
+const A = {
+  chefAvatar:   'https://www.figma.com/api/mcp/asset/39e2594a-38e4-4467-bf9d-bcd5b341c7cd',
+  reactionBg:   'https://www.figma.com/api/mcp/asset/462cb887-f7f1-47eb-a3c7-50a40a24abad',
+  reactionIcon: 'https://www.figma.com/api/mcp/asset/3a1d0743-d68c-41ab-8103-c401f8e1faca',
+};
+
+const EMOJI_OPTIONS = ['👌','❤️','🔥','😂','👍','😎','🙌','✨','🤌','💯'];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let uid = 20;
+const participants = {
+  dorsia:  { id:'dorsia',  side:'right', color:'#584cf5', textColor:'#fff',  avatar:null,           label:'Dorsia' },
+  chef:    { id:'chef',    side:'left',  color:'#efefef', textColor:'#000',  avatar:A.chefAvatar,   label:'Chef'   },
+  person3: { id:'person3', side:'left',  color:'#d4f1eb', textColor:'#000',  avatar:null,           label:'Guest', active:false },
+};
+
+let messages = [
+  { id:1,  from:'dorsia', type:'text',  text:"Hey chef, can't wait to check out your new spot. Anything on the must-order list?" },
+  { id:2,  from:'chef',   type:'text',  text:"Chocolate, Bread, and Olive Oil. We scorch the top with a red-hot iron, and it's been a best seller since day one. People are surprised by the salty-sweet combo." },
+  { id:3,  from:'dorsia', type:'text',  text:"Right to dessert, we're not mad at it. Any underrated gems to keep our eye on? 👀" },
+  { id:4,  from:'chef',   type:'photo', text:"Sardine empanada. The pastry is laced with smoke from the grill, and the UK-caught sardines have this briny, metallic richness typical of Cantabrian fish. It's become a bit of a hit on Instagram, but I think people don't know what to expect. It's fun.", photo:'empanada.jpg', reaction:'👌' },
+  { id:5,  from:'dorsia', type:'text',  text:"Best seat in the house?" },
+  { id:6,  from:'chef',   type:'photo', text:"Each space has its own feel. Guests gravitate downstairs, with the heat and action of the open kitchen, but then upstairs opens up with high ceilings, walls of wine on display, and huge windows overlooking SoHo.", photo:'interior.jpg', reaction:null, photoFirst:true },
+  { id:7,  from:'dorsia', type:'text',  text:"What's your favorite sip?" },
+  { id:8,  from:'chef',   type:'text',  text:"Pine Martini. Birch water gives it a savory, umami depth that stands well on its own but is even better with food." },
+  { id:9,  from:'dorsia', type:'text',  text:"How's the vibe?" },
+  { id:10, from:'chef',   type:'text',  text:"No chandeliers here." },
+  { id:11, from:'dorsia', type:'text',  text:"No fuss is fine by us. Best time for a res?" },
+  { id:12, from:'chef',   type:'text',  text:"You can pop in for a solo lunch at the counter and watch the chefs work, or come for a big Friday night with friends since the food is great for sharing." },
+  { id:13, from:'dorsia', type:'text',  text:"Count us in 😎" },
+];
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const container = document.getElementById('messages-container');
+  container.innerHTML = '';
+
+  messages.forEach((msg, i) => {
+    const p = participants[msg.from];
+    const prevFrom = i > 0 ? messages[i - 1].from : null;
+    const isFirst  = prevFrom !== msg.from;
+
+    const outer = document.createElement('div');
+    outer.className = 'msg-outer';
+    outer.dataset.id  = msg.id;
+    outer.dataset.side = p.side;
+
+    const ctrlHtml = `<div class="msg-controls">${buildControls(msg, i)}</div>`;
+
+    if (p.side === 'right') {
+      outer.innerHTML = ctrlHtml + `
+        <div class="msg-right">
+          <div class="bubble-right" contenteditable="true" spellcheck="false"
+               style="background:${p.color};color:${p.textColor};"
+               onblur="saveText(${msg.id},this)">${msg.text}</div>
+        </div>`;
+    } else {
+      outer.innerHTML = ctrlHtml + buildLeftMessage(msg, p, isFirst);
+    }
+
+    container.appendChild(outer);
+  });
+}
+
+function buildControls(msg, i) {
+  const activeP = Object.values(participants).filter(p =>
+    p.id === 'dorsia' || p.id === 'chef' || (p.id === 'person3' && p.active)
+  );
+  const options = activeP.map(p =>
+    `<option value="${p.id}" ${p.id === msg.from ? 'selected' : ''}>${p.label}</option>`
+  ).join('');
+  const reactionLabel = msg.reaction ? msg.reaction : '😊';
+  return `
+    <select onchange="changeSpeaker(${msg.id},this.value)" title="Change speaker">${options}</select>
+    <button class="ctrl-btn ctrl-react" onclick="toggleEmojiPicker(${msg.id},this)" title="Add reaction">${reactionLabel}</button>
+    <button class="ctrl-btn ctrl-del" onclick="deleteMessage(${msg.id})" title="Delete">×</button>
+  `;
+}
+
+function buildLeftMessage(msg, p, showAvatar) {
+  const avatarHtml = showAvatar
+    ? `<img class="avatar" src="${p.avatar || ''}" alt="" style="${!p.avatar ? 'background:#ccc;' : ''}">`
+    : `<div class="avatar-spacer"></div>`;
+
+  let bubbles = '';
+
+  if (msg.type === 'photo' && msg.photoFirst) {
+    bubbles += buildPhotoEl(msg);
+    bubbles += `<div class="bubble-left bubble-cont" contenteditable="true" spellcheck="false"
+      style="background:${p.color};color:${p.textColor};"
+      onblur="saveText(${msg.id},this)">${msg.text}</div>`;
+  } else if (msg.type === 'photo') {
+    bubbles += `<div class="bubble-left bubble-first" contenteditable="true" spellcheck="false"
+      style="background:${p.color};color:${p.textColor};"
+      onblur="saveText(${msg.id},this)">${msg.text}</div>`;
+    bubbles += buildPhotoEl(msg);
+  } else {
+    bubbles += `<div class="bubble-left bubble-first" contenteditable="true" spellcheck="false"
+      style="background:${p.color};color:${p.textColor};"
+      onblur="saveText(${msg.id},this)">${msg.text}</div>`;
+  }
+
+  const reactionPill = msg.reaction
+    ? `<div class="reaction-pill-row"><div class="reaction-pill">${msg.reaction}</div></div>` : '';
+
+  return `
+    <div class="msg-left-group">
+      <div class="msg-left-row">
+        ${avatarHtml}
+        <div class="bubbles-col">${bubbles}</div>
+      </div>
+      ${reactionPill}
+    </div>`;
+}
+
+function buildPhotoEl(msg) {
+  const reactionDot = msg.reaction ? `
+    <div class="reaction-dot">
+      <img class="rdot-bg" src="${A.reactionBg}" alt="">
+      <img class="rdot-ico" src="${A.reactionIcon}" alt="">
+    </div>` : '';
+  return `
+    <div class="photo-row">
+      <div class="photo-wrap">
+        <img class="food-photo" src="${msg.photo || ''}" alt="" id="photo-${msg.id}" ${!msg.photo ? 'style="background:#ddd;"' : ''}>
+        <div class="photo-replace-btn" onclick="replaceMessagePhoto(${msg.id})">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>Replace Photo
+        </div>
+      </div>
+      ${reactionDot}
+    </div>`;
+}
+
+// ─── EMOJI PICKER ─────────────────────────────────────────────────────────────
+function toggleEmojiPicker(msgId, btn) {
+  const existing = document.getElementById('emoji-picker');
+  if (existing) { existing.remove(); return; }
+
+  const picker = document.createElement('div');
+  picker.id = 'emoji-picker';
+  picker.innerHTML =
+    EMOJI_OPTIONS.map(e =>
+      `<button class="emoji-opt" onclick="setReaction(${msgId},'${e}')">${e}</button>`
+    ).join('') +
+    `<button class="emoji-opt emoji-clear" onclick="setReaction(${msgId},null)" title="Remove reaction">✕</button>`;
+
+  const rect = btn.getBoundingClientRect();
+  picker.style.top  = (rect.bottom + 6) + 'px';
+  picker.style.left = Math.max(8, rect.left - 60) + 'px';
+  document.body.appendChild(picker);
+
+  setTimeout(() => {
+    document.addEventListener('click', function dismiss(e) {
+      if (!picker.contains(e.target) && e.target !== btn) {
+        picker.remove();
+        document.removeEventListener('click', dismiss);
+      }
+    });
+  }, 10);
+}
+
+function setReaction(id, emoji) {
+  const msg = messages.find(m => m.id === id);
+  if (msg) msg.reaction = emoji;
+  const picker = document.getElementById('emoji-picker');
+  if (picker) picker.remove();
+  render();
+}
+
+// ─── MUTATIONS ───────────────────────────────────────────────────────────────
+function saveText(id, el) {
+  const msg = messages.find(m => m.id === id);
+  if (msg) msg.text = el.innerText;
+}
+
+function addMessage(from) {
+  messages.push({ id: ++uid, from, type:'text', text:'Type something...' });
+  render();
+  requestAnimationFrame(() => {
+    const all = document.querySelectorAll('[contenteditable]');
+    const last = Array.from(all).findLast(el => el.closest('[data-id]'));
+    if (last) { last.focus(); selectAll(last); }
+  });
+}
+
+function deleteMessage(id) {
+  messages = messages.filter(m => m.id !== id);
+  render();
+}
+
+function changeSpeaker(id, newFrom) {
+  const msg = messages.find(m => m.id === id);
+  if (msg) { msg.from = newFrom; render(); }
+}
+
+function newChat() {
+  if (!confirm('Clear all messages and start a new chat?')) return;
+  messages = [];
+  render();
+}
+
+// ─── PHOTOS ──────────────────────────────────────────────────────────────────
+function replacePhoto(imgId) {
+  pickFile(file => {
+    const r = new FileReader();
+    r.onload = e => document.getElementById(imgId).src = e.target.result;
+    r.readAsDataURL(file);
+  });
+}
+
+function replaceMessagePhoto(id) {
+  pickFile(file => {
+    const r = new FileReader();
+    r.onload = e => {
+      const msg = messages.find(m => m.id === id);
+      if (msg) msg.photo = e.target.result;
+      const img = document.getElementById('photo-' + id);
+      if (img) img.src = e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+function replaceParticipantAvatar(pid) {
+  pickFile(file => {
+    const r = new FileReader();
+    r.onload = e => {
+      participants[pid].avatar = e.target.result;
+      const panelImg = document.getElementById('p-' + pid + '-avatar');
+      if (panelImg) panelImg.src = e.target.result;
+      render();
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+function pickFile(cb) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => { if (inp.files[0]) cb(inp.files[0]); };
+  inp.click();
+}
+
+// ─── PARTICIPANTS ─────────────────────────────────────────────────────────────
+function updateParticipantLabel(pid, val) {
+  participants[pid].label = val || pid;
+  render();
+  updateAddBar();
+}
+
+function setParticipantColor(pid, el) {
+  participants[pid].color = el.dataset.color;
+  participants[pid].textColor = isLight(el.dataset.color) ? '#000' : '#fff';
+  const group = el.closest('.p-color-swatches');
+  group.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function isLight(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114) / 1000 > 128;
+}
+
+function togglePerson3(active) {
+  participants.person3.active = active;
+  document.getElementById('p3-fields').classList.toggle('p-inactive', !active);
+  document.getElementById('add-p3-btn').style.display = active ? '' : 'none';
+  render();
+  updateAddBar();
+}
+
+function updateAddBar() {
+  const lbl = document.getElementById('add-p3-label');
+  const dot = document.getElementById('add-p3-dot');
+  if (lbl) lbl.textContent = '+ ' + participants.person3.label;
+  if (dot) dot.style.background = participants.person3.color;
+}
+
+function togglePanel() {
+  document.getElementById('participants-panel').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  const panel = document.getElementById('participants-panel');
+  if (!panel.classList.contains('open')) return;
+  const toggleBtn = e.target.closest('[onclick*="togglePanel"]');
+  if (!toggleBtn && !panel.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
+
+// ─── SEND TO FIGMA ────────────────────────────────────────────────────────────
+function sendToFigma() {
+  const base = window.location.href.split('?')[0];
+  const captureUrl = base + '?figma=1';
+  document.getElementById('figma-capture-url').textContent = captureUrl;
+  document.getElementById('figma-ready-overlay').classList.add('show');
+  window.open(captureUrl, '_blank');
+}
+
+function closeFigmaOverlay() {
+  document.getElementById('figma-ready-overlay').classList.remove('show');
+}
+
+function copyFigmaUrl() {
+  const url = document.getElementById('figma-capture-url').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy URL'; }, 2000);
+  });
+}
+
+function enterFigmaCapture() {
+  document.body.classList.add('figma-capture-mode');
+  document.body.style.paddingTop = '0';
+  const dm = document.getElementById('dm-design');
+  dm.style.margin = '0';
+}
+
+// ─── PREVIEW / IPHONE ────────────────────────────────────────────────────────
+const SCREEN_W = 508, CHAT_W = 1200, SCALE = SCREEN_W / CHAT_W;
+
+function enterPreview() {
+  if (document.activeElement) document.activeElement.blur();
+  const dm = document.getElementById('dm-design');
+  const chatH = dm.offsetHeight;
+  const scaledH = Math.ceil(chatH * SCALE);
+
+  const phone = document.createElement('div');
+  phone.id = 'iphone-frame';
+  phone.innerHTML = `
+    <div class="iphone-btn iphone-mute"></div>
+    <div class="iphone-btn iphone-vol-up"></div>
+    <div class="iphone-btn iphone-vol-down"></div>
+    <div class="iphone-btn iphone-power"></div>
+    <div class="iphone-screen">
+      <div class="iphone-status">
+        <span class="iphone-time">9:41</span>
+        <div class="iphone-island"></div>
+        <div class="iphone-status-icons">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="black">
+            <rect x="0" y="8" width="3" height="4" rx="1" opacity=".3"/>
+            <rect x="4.5" y="5" width="3" height="7" rx="1" opacity=".3"/>
+            <rect x="9" y="2" width="3" height="10" rx="1" opacity=".6"/>
+            <rect x="13.5" y="0" width="3" height="12" rx="1"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <circle cx="8" cy="10.5" r="1.5" fill="black"/>
+            <path d="M4.2 7.2C5.4 6 6.6 5.4 8 5.4s2.6.6 3.8 1.8" stroke="black" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M1.5 4.5C3.3 2.7 5.5 1.8 8 1.8s4.7.9 6.5 2.7" stroke="black" stroke-width="1.4" stroke-linecap="round" opacity=".4"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="black" stroke-opacity=".35"/>
+            <rect x="2" y="2" width="17" height="8" rx="2" fill="black"/>
+            <path d="M23 4v4a2 2 0 000-4z" fill="black" opacity=".4"/>
+          </svg>
+        </div>
+      </div>
+      <div class="iphone-content-outer" style="height:${scaledH}px;" id="iphone-slot"></div>
+      <div class="iphone-home"></div>
+    </div>`;
+
+  dm.style.cssText = 'margin:0; transform-origin:top left; transform:scale('+SCALE+'); width:'+CHAT_W+'px;';
+  phone.querySelector('#iphone-slot').appendChild(dm);
+  document.body.appendChild(phone);
+  document.body.classList.add('preview-mode');
+
+  const back = document.createElement('button');
+  back.id = 'back-btn';
+  back.textContent = '← Back to Editor';
+  back.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(255,255,255,.12);backdrop-filter:blur(16px);color:white;border:1px solid rgba(255,255,255,.25);border-radius:24px;padding:12px 28px;font-size:13px;font-weight:600;cursor:pointer;font-family:Sailec,-apple-system,sans-serif;';
+  back.onclick = exitPreview;
+  document.body.appendChild(back);
+}
+
+function exitPreview() {
+  const dm = document.getElementById('dm-design');
+  const phone = document.getElementById('iphone-frame');
+  const back = document.getElementById('back-btn');
+  dm.style.cssText = '';
+  if (phone) { document.body.insertBefore(dm, phone); phone.remove(); }
+  if (back) back.remove();
+  document.body.classList.remove('preview-mode');
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function selectAll(el) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.hasAttribute('contenteditable')) {
+    e.preventDefault();
+    document.execCommand('insertLineBreak');
+  }
+});
+
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('preview') === '1') setTimeout(enterPreview, 600);
+  if (params.get('figma') === '1')   setTimeout(enterFigmaCapture, 300);
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
