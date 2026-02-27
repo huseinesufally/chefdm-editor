@@ -47,24 +47,24 @@
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
       font-size:12px; font-weight:500; letter-spacing:-.1px;
       padding:0 16px; height:34px; border-radius:100px;
-      border:none; cursor:pointer; transition:all .15s;
+      border:none; cursor:pointer;
+      transition:background .18s cubic-bezier(0.4,0,0.2,1),
+                 color .18s cubic-bezier(0.4,0,0.2,1),
+                 border-color .18s cubic-bezier(0.4,0,0.2,1),
+                 box-shadow .18s cubic-bezier(0.4,0,0.2,1);
       display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
     }
     .btn-outline {
       background:transparent; color:#000;
       border:1px solid #d4d4d4;
     }
-    .btn-outline:hover { background:#f5f5f5; border-color:#aaa; }
-    .btn-ghost { background:transparent; color:#666; border:none; }
-    .btn-ghost:hover { background:#f5f5f5; color:#000; }
-    .btn-dark {
-      background:#000; color:#fff; border:1px solid #000;
-    }
-    .btn-dark:hover { background:#222; }
-    .btn-figma {
-      background:#584cf5; color:#fff; border:1px solid #584cf5;
-    }
-    .btn-figma:hover { background:#4a3fe0; }
+    .btn-outline:hover { background:#f7f7f7; border-color:#bbb; }
+    .btn-ghost { background:transparent; color:#666; border:1px solid transparent; }
+    .btn-ghost:hover { background:#f5f5f5; color:#000; border-color:transparent; }
+    .btn-dark { background:#000; color:#fff; border:1px solid #000; }
+    .btn-dark:hover { background:#1a1a1a; box-shadow:0 2px 8px rgba(0,0,0,.18); }
+    .btn-figma { background:#584cf5; color:#fff; border:1px solid #584cf5; }
+    .btn-figma:hover { background:#4a3fe0; box-shadow:0 2px 8px rgba(88,76,245,.3); }
     .btn-danger { background:transparent; color:#c0392b; border:1px solid #f5c6c2; }
     .btn-danger:hover { background:#fef2f2; }
 
@@ -74,7 +74,7 @@
       background:#fff; color:#000;
       padding:64px 20px 24px;
       border-left:1px solid #e8e8e8;
-      transform:translateX(100%); transition:transform .25s ease;
+      transform:translateX(100%); transition:transform .32s cubic-bezier(0.34,1.12,0.64,1);
       overflow-y:auto;
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
       box-shadow:-4px 0 24px rgba(0,0,0,.06);
@@ -100,7 +100,8 @@
     .p-avatar-btn {
       position:absolute; inset:0; background:rgba(0,0,0,.5); border-radius:50%;
       display:flex; align-items:center; justify-content:center;
-      opacity:0; cursor:pointer; transition:opacity .2s;
+      opacity:0; cursor:pointer;
+      transition:opacity .18s cubic-bezier(0.4,0,0.2,1);
       font-size:10px; font-weight:600; color:white;
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
     }
@@ -122,10 +123,13 @@
     .p-color-swatches { display:flex; gap:6px; flex-wrap:wrap; }
     .color-swatch {
       width:22px; height:22px; border-radius:6px; cursor:pointer;
-      border:2px solid transparent; transition:all .15s;
+      border:2px solid transparent;
+      transition:transform .2s cubic-bezier(0.34,1.4,0.64,1),
+                 border-color .15s cubic-bezier(0.4,0,0.2,1),
+                 box-shadow .15s cubic-bezier(0.4,0,0.2,1);
     }
     .color-swatch.active { border-color:#000; box-shadow:0 0 0 1px #000; }
-    .color-swatch:hover { transform:scale(1.1); }
+    .color-swatch:hover { transform:scale(1.15); }
     .p-toggle { display:flex; align-items:center; justify-content:space-between; }
     .toggle-switch { position:relative; width:36px; height:20px; cursor:pointer; }
     .toggle-switch input { opacity:0; width:0; height:0; }
@@ -231,7 +235,8 @@
     .profile-photo { width:104px; height:104px; border-radius:50%; object-fit:cover; display:block; }
     .profile-replace-btn {
       position:absolute; inset:0; background:rgba(0,0,0,.5); border-radius:50%;
-      display:flex; align-items:center; justify-content:center; opacity:0; cursor:pointer; transition:opacity .2s;
+      display:flex; align-items:center; justify-content:center; opacity:0; cursor:pointer;
+      transition:opacity .18s cubic-bezier(0.4,0,0.2,1);
       color:white; font-family:'Sailec',-apple-system,sans-serif; font-size:11px; font-weight:600; text-align:center;
     }
     .profile-photo-wrap:hover .profile-replace-btn { opacity:1; }
@@ -252,48 +257,82 @@
     .msg-outer { position:relative; display:flex; flex-direction:column; }
     .msg-outer[data-side="right"] { align-items:flex-end; }
     .msg-outer[data-side="left"]  { align-items:flex-start; }
-    .msg-outer:hover .msg-controls { opacity:1; }
+    .msg-outer:hover .msg-controls { opacity:1; transform:translateY(0); }
 
-    /* Controls overlay */
+    /* Controls — unified frosted glass pill */
     .msg-controls {
-      position:absolute; top:-12px; right:0; z-index:100;
-      display:flex; align-items:center; gap:5px;
-      opacity:0; transition:opacity .15s;
+      position:absolute; top:-16px; right:0; z-index:100;
+      display:flex; align-items:center; gap:0;
+      opacity:0; transform:translateY(5px);
+      transition:opacity .2s cubic-bezier(0.16,1,0.3,1),
+                 transform .25s cubic-bezier(0.34,1.4,0.64,1);
+      background:rgba(255,255,255,0.96);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(0,0,0,0.07);
+      border-radius:100px;
+      box-shadow:0 2px 12px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.05);
+      padding:3px;
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
     }
     .msg-outer[data-side="left"] .msg-controls { right:auto; left:0; }
+
+    /* Speaker select inside pill */
     .msg-controls select {
-      font-size:11px; font-weight:500; padding:4px 8px; border-radius:100px;
-      background:#000; color:white; border:none; cursor:pointer; outline:none;
+      font-size:12px; font-weight:600;
+      padding:4px 22px 4px 10px; border-radius:100px;
+      background:transparent; color:#000; border:none;
+      cursor:pointer; outline:none;
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
+      appearance:none; -webkit-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4 4L7 1' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 7px center;
+      transition:background-color .15s cubic-bezier(0.4,0,0.2,1);
     }
+    .msg-controls select:hover { background-color:rgba(0,0,0,0.05); }
+
+    /* Thin separator between select and icon buttons */
+    .ctrl-divider { width:1px; height:14px; background:rgba(0,0,0,0.1); margin:0 3px; flex-shrink:0; }
+
+    /* Icon buttons */
     .ctrl-btn {
-      height:26px; padding:0 10px; border-radius:100px; border:none; cursor:pointer;
-      font-size:12px; font-weight:600; display:inline-flex; align-items:center;
-      transition:opacity .15s; font-family:'Sailec',-apple-system,system-ui,sans-serif;
+      width:28px; height:28px; border-radius:100px; border:none; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center;
+      background:transparent; color:#aaa; flex-shrink:0;
+      transition:background .15s cubic-bezier(0.4,0,0.2,1),
+                 color .15s cubic-bezier(0.4,0,0.2,1);
     }
-    .ctrl-btn:hover { opacity:.75; }
-    .ctrl-del  { background:#c0392b; color:white; font-size:14px; padding:0 9px; }
-    .ctrl-react { background:#fff; color:#000; border:1px solid #e0e0e0; font-size:14px; padding:0 8px; }
+    .ctrl-btn:hover { background:rgba(0,0,0,0.06); color:#333; }
+    .ctrl-react:hover { color:#333; }
+    .ctrl-del:hover { background:rgba(192,57,43,0.08) !important; color:#c0392b !important; }
 
     /* Emoji picker */
+    @keyframes picker-appear {
+      from { opacity:0; transform:translateY(4px) scale(0.96); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
     #emoji-picker {
       position:fixed; z-index:99999;
-      background:#fff; border:1px solid #e8e8e8; border-radius:12px;
-      padding:8px; display:flex; gap:4px; flex-wrap:wrap; max-width:220px;
-      box-shadow:0 8px 32px rgba(0,0,0,.14);
+      background:rgba(255,255,255,0.97);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(0,0,0,0.07); border-radius:14px;
+      padding:6px; display:flex; gap:2px; flex-wrap:wrap; max-width:210px;
+      box-shadow:0 8px 32px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.06);
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
+      animation:picker-appear .2s cubic-bezier(0.34,1.4,0.64,1) forwards;
+      transform-origin:top center;
     }
     .emoji-opt {
-      width:36px; height:36px; border-radius:8px; border:none; cursor:pointer;
+      width:34px; height:34px; border-radius:8px; border:none; cursor:pointer;
       font-size:20px; background:transparent; display:flex; align-items:center; justify-content:center;
-      transition:background .1s;
+      transition:background .12s cubic-bezier(0.4,0,0.2,1), transform .15s cubic-bezier(0.34,1.4,0.64,1);
     }
-    .emoji-opt:hover { background:#f0f0f0; }
+    .emoji-opt:hover { background:rgba(0,0,0,0.06); transform:scale(1.2); }
     .emoji-clear {
-      font-size:13px; color:#999; font-weight:700;
-      border:1px solid #e8e8e8; border-radius:8px; width:36px; height:36px;
+      font-size:11px; color:#bbb; font-weight:600;
+      border:1px solid rgba(0,0,0,0.08); border-radius:8px;
+      width:34px; height:34px; transition:color .15s, background .15s;
     }
+    .emoji-clear:hover { color:#c0392b !important; background:rgba(192,57,43,0.08) !important; border-color:rgba(192,57,43,0.2) !important; }
 
     /* Right bubble (Dorsia) */
     .msg-right { max-width:660px; }
@@ -323,7 +362,8 @@
     .photo-replace-btn {
       position:absolute; inset:0; background:rgba(0,0,0,.45); border-radius:20px 50px 50px 20px;
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
-      opacity:0; cursor:pointer; transition:opacity .2s;
+      opacity:0; cursor:pointer;
+      transition:opacity .18s cubic-bezier(0.4,0,0.2,1);
       color:white; font-family:'Sailec',-apple-system,system-ui,sans-serif; font-size:14px; font-weight:600;
     }
     .photo-wrap:hover .photo-replace-btn { opacity:1; }
@@ -346,12 +386,15 @@
     .add-msg-btn {
       display:flex; align-items:center; gap:7px;
       padding:9px 18px; border-radius:100px;
-      border:1.5px dashed #ccc;
+      border:1.5px dashed rgba(0,0,0,0.15);
       background:transparent; cursor:pointer;
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
-      font-size:12px; font-weight:500; color:#666; transition:all .15s;
+      font-size:12px; font-weight:500; color:#888;
+      transition:background .18s cubic-bezier(0.4,0,0.2,1),
+                 border-color .18s cubic-bezier(0.4,0,0.2,1),
+                 color .18s cubic-bezier(0.4,0,0.2,1);
     }
-    .add-msg-btn:hover { background:#f5f5f5; border-color:#999; color:#000; }
+    .add-msg-btn:hover { background:rgba(0,0,0,0.03); border-color:rgba(0,0,0,0.3); color:#333; }
     .add-msg-dot { width:14px; height:14px; border-radius:50%; display:inline-block; flex-shrink:0; }
 
     /* ── BOTTOM BANNER ── */
@@ -363,16 +406,17 @@
 
     /* Smooth transitions for all chat regions */
     .msg-outer, .dm-header, .bottom-banner, .add-msg-bar {
-      transition: filter .22s ease, opacity .22s ease;
+      transition: filter .28s cubic-bezier(0.4,0,0.2,1),
+                  opacity .28s cubic-bezier(0.4,0,0.2,1);
     }
     /* When editing: blur everything except the active bubble */
     body.editing-mode .msg-outer:not(.editing-active) {
-      filter: blur(3px); opacity: 0.35;
+      filter: blur(2.5px); opacity: 0.3;
     }
     body.editing-mode .dm-header,
     body.editing-mode .bottom-banner,
     body.editing-mode .add-msg-bar {
-      filter: blur(3px); opacity: 0.35;
+      filter: blur(2.5px); opacity: 0.3;
     }
     body.editing-mode .editing-active {
       position: relative; z-index: 10;
@@ -617,11 +661,24 @@ function buildControls(msg, i) {
   const options = activeP.map(p =>
     `<option value="${p.id}" ${p.id === msg.from ? 'selected' : ''}>${p.label}</option>`
   ).join('');
-  const reactionLabel = msg.reaction ? msg.reaction : '😊';
+  const reactTitle = msg.reaction ? `Reaction: ${msg.reaction} — click to change` : 'Add reaction';
+  const reactActive = msg.reaction ? ' style="color:#333;"' : '';
   return `
     <select onchange="changeSpeaker(${msg.id},this.value)" title="Change speaker">${options}</select>
-    <button class="ctrl-btn ctrl-react" onclick="toggleEmojiPicker(${msg.id},this)" title="Add reaction">${reactionLabel}</button>
-    <button class="ctrl-btn ctrl-del" onclick="deleteMessage(${msg.id})" title="Delete">×</button>
+    <div class="ctrl-divider"></div>
+    <button class="ctrl-btn ctrl-react" onclick="toggleEmojiPicker(${msg.id},this)" title="${reactTitle}"${reactActive}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+        <line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"/>
+        <line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"/>
+      </svg>
+    </button>
+    <button class="ctrl-btn ctrl-del" onclick="deleteMessage(${msg.id})" title="Delete">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <line x1="1" y1="1" x2="10" y2="10"/><line x1="10" y1="1" x2="1" y2="10"/>
+      </svg>
+    </button>
   `;
 }
 
