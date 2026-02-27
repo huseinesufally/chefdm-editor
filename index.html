@@ -638,6 +638,9 @@
         <div><div class="p-label">Handle</div>
           <input class="p-input" id="p-chef-header-handle" placeholder="chefhandle_" oninput="updateChefHeaderHandle(this.value)">
         </div>
+        <div><div class="p-label">Restaurant</div>
+          <input class="p-input" id="p-chef-header-venue" placeholder="Restaurant name" oninput="updateChefVenue(this.value)">
+        </div>
       </div>
     </div>
 
@@ -857,6 +860,8 @@ function loadChat(chatId) {
   if (panelHeaderName) panelHeaderName.value = chat.chefName || '';
   if (panelHeaderHandle) panelHeaderHandle.value = chat.headerHandle || '';
   if (panelHeaderPhoto) panelHeaderPhoto.src = chat.profilePhotoSrc || A.profilePhoto;
+  const panelVenue = document.getElementById('p-chef-header-venue');
+  if (panelVenue) panelVenue.value = chat.venue || '';
 
   render();
   renderTabs();
@@ -1206,6 +1211,11 @@ function updateChefHeaderHandle(val) {
   if (chat) chat.headerHandle = val;
 }
 
+function updateChefVenue(val) {
+  const chat = getActiveChat();
+  if (chat) { chat.venue = val; renderTabs(); }
+}
+
 function replaceHeaderPhoto() {
   pickFile(file => {
     const r = new FileReader();
@@ -1383,10 +1393,11 @@ document.addEventListener('focusin', e => {
   if (!e.target.hasAttribute('contenteditable')) return;
   if (document.body.classList.contains('preview-mode') ||
       document.body.classList.contains('figma-capture-mode')) return;
+  const msgOuter = e.target.closest('.msg-outer');
+  if (!msgOuter) return; // header / handle fields — don't trigger blur mode
   document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
   document.body.classList.add('editing-mode');
-  const msgOuter = e.target.closest('.msg-outer');
-  if (msgOuter) msgOuter.classList.add('editing-active');
+  msgOuter.classList.add('editing-active');
 });
 
 document.addEventListener('focusout', e => {
@@ -1438,8 +1449,7 @@ function scaleDmForMobile() {
 window.addEventListener('resize', scaleDmForMobile);
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
-render();
-renderTabs();
+loadChat(activeChatId);
 scaleDmForMobile();
 </script>
 </body>
