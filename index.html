@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1200">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chef DM Editor</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
   <style>
     /* ── FONTS ── */
@@ -32,11 +33,10 @@
       display:flex; align-items:center; gap:10px;
       padding-right:16px; border-right:1px solid #e8e8e8;
     }
-    .editor-bar-logo-dot {
-      width:22px; height:22px; background:#000; border-radius:5px;
-      display:flex; align-items:center; justify-content:center;
+    .editor-bar-logo-img {
+      width:28px; height:28px; border-radius:6px;
+      display:block; flex-shrink:0;
     }
-    .editor-bar-logo-dot svg { display:block; }
     .editor-bar-title { font-weight:700; font-size:13px; color:#000; letter-spacing:-.2px; }
     .editor-bar-hint  { color:#999; font-size:12px; font-weight:400; }
     .editor-bar-right { margin-left:auto; display:flex; gap:8px; align-items:center; }
@@ -144,10 +144,99 @@
     .toggle-switch input:checked + .toggle-track { background:#000; }
     .toggle-switch input:checked + .toggle-track::before { transform:translateX(16px); }
     .p-inactive { opacity:.4; pointer-events:none; }
+    .p-section-divider { height:1px; background:#ebebeb; margin:12px 0; }
+
+    /* ── TAB BAR ── */
+    #tab-bar {
+      position:fixed; top:56px; left:0; right:0; z-index:8998;
+      height:52px; background:transparent;
+      display:flex; align-items:center;
+      padding:0 20px; gap:8px;
+      font-family:'Sailec',-apple-system,system-ui,sans-serif;
+    }
+    #tab-bar.hidden { display:none; }
+    .tab-list {
+      display:flex; align-items:center; gap:6px;
+      overflow-x:auto; flex:1;
+    }
+    .tab-list::-webkit-scrollbar { display:none; }
+    .tab-list { scrollbar-width:none; }
+
+    .chat-tab {
+      display:flex; align-items:center; gap:8px;
+      padding:0 10px 0 8px; height:34px; border-radius:100px;
+      cursor:pointer; flex-shrink:0;
+      min-width:148px; max-width:216px;
+      background:rgba(255,255,255,0.68);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,0.55);
+      box-shadow:0 1px 4px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.04);
+      transition:background .2s cubic-bezier(0.4,0,0.2,1),
+                 box-shadow .2s cubic-bezier(0.4,0,0.2,1),
+                 transform .25s cubic-bezier(0.34,1.4,0.64,1);
+    }
+    .chat-tab:hover {
+      background:rgba(255,255,255,0.88);
+      box-shadow:0 2px 10px rgba(0,0,0,0.1), 0 0 0 0.5px rgba(0,0,0,0.04);
+    }
+    .chat-tab.active {
+      background:rgba(255,255,255,0.97);
+      border-color:rgba(255,255,255,0.9);
+      box-shadow:0 2px 16px rgba(0,0,0,0.13), 0 1px 4px rgba(0,0,0,0.07);
+      transform:translateY(-1px);
+    }
+
+    .tab-avatar {
+      width:20px; height:20px; border-radius:50%; flex-shrink:0;
+      background:#e0e0e0 center/cover; border:1.5px solid rgba(0,0,0,0.06);
+    }
+    .tab-info { display:flex; flex-direction:column; gap:1px; flex:1; min-width:0; overflow:hidden; }
+    .tab-name {
+      font-size:11.5px; font-weight:600; color:#000;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      display:block; outline:none !important;
+    }
+    .chat-tab.active .tab-name { cursor:text; }
+    .chat-tab:not(.active) .tab-name { cursor:pointer; pointer-events:none; }
+    .tab-meta {
+      display:flex; align-items:center; gap:3px;
+      font-size:9.5px; color:#aaa; white-space:nowrap; overflow:hidden;
+    }
+    .tab-venue, .tab-date { outline:none !important; }
+    .chat-tab.active .tab-venue,
+    .chat-tab.active .tab-date { cursor:text; }
+    .chat-tab:not(.active) .tab-venue,
+    .chat-tab:not(.active) .tab-date { pointer-events:none; }
+    .tab-sep { opacity:.4; }
+
+    .tab-close {
+      width:16px; height:16px; border-radius:50%; border:none;
+      background:transparent; cursor:pointer; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      color:rgba(0,0,0,0.25); opacity:0; padding:0;
+      transition:opacity .15s, background .15s, color .15s;
+    }
+    .chat-tab:hover .tab-close { opacity:1; }
+    .tab-close:hover { background:rgba(0,0,0,0.08) !important; color:#444 !important; }
+
+    .add-tab-btn {
+      width:34px; height:34px; flex-shrink:0; border:none;
+      border-radius:50%; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      color:rgba(0,0,0,0.35);
+      background:rgba(255,255,255,0.68);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,0.55);
+      box-shadow:0 1px 4px rgba(0,0,0,0.07);
+      transition:background .18s cubic-bezier(0.4,0,0.2,1),
+                 box-shadow .18s cubic-bezier(0.4,0,0.2,1),
+                 color .18s;
+    }
+    .add-tab-btn:hover { background:rgba(255,255,255,0.97); color:#000; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
 
     /* ── BODY ── */
     body {
-      background:#f0f0f0; padding-top:56px;
+      background:#f0f0f0; padding-top:108px;
       font-family:'SF Pro Text',-apple-system,BlinkMacSystemFont,sans-serif;
     }
     body.preview-mode {
@@ -160,8 +249,13 @@
     }
     body.preview-mode .editor-bar         { display:none; }
     body.figma-capture-mode .editor-bar   { display:none; }
+    body.preview-mode #tab-bar            { display:none; }
+    body.figma-capture-mode #tab-bar      { display:none; }
     body.preview-mode #participants-panel  { display:none; }
     body.figma-capture-mode #participants-panel { display:none; }
+    body.preview-mode body, body.figma-capture-mode body { padding-top:0; }
+    body.preview-mode { padding-top:60px; }
+    body.figma-capture-mode { padding-top:0; }
     body.preview-mode .msg-controls        { display:none !important; }
     body.figma-capture-mode .msg-controls  { display:none !important; }
     body.preview-mode .add-msg-bar         { display:none; }
@@ -170,26 +264,48 @@
     body.figma-capture-mode [contenteditable]{ outline:none !important; cursor:default; pointer-events:none; user-select:none; }
 
     /* ── SEND TO FIGMA OVERLAY ── */
-    #figma-ready-overlay {
+    #figma-overlay {
       display:none; position:fixed; inset:0; z-index:99999;
-      background:rgba(0,0,0,.7); backdrop-filter:blur(12px);
+      background:rgba(0,0,0,.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
       align-items:center; justify-content:center;
       font-family:'Sailec',-apple-system,system-ui,sans-serif;
     }
-    #figma-ready-overlay.show { display:flex; }
-    .figma-ready-card {
-      background:#fff; border-radius:20px; padding:36px 40px; max-width:420px; text-align:center;
-      box-shadow:0 32px 80px rgba(0,0,0,.4);
+    #figma-overlay.show { display:flex; }
+    .figma-card {
+      background:#fff; border-radius:20px; padding:32px 36px 28px;
+      max-width:400px; width:90%; text-align:center;
+      box-shadow:0 24px 64px rgba(0,0,0,.3);
+      animation:cardIn .3s cubic-bezier(0.34,1.4,0.64,1);
     }
-    .figma-ready-icon { font-size:40px; margin-bottom:16px; }
-    .figma-ready-title { font-size:20px; font-weight:700; color:#000; margin-bottom:8px; }
-    .figma-ready-body  { font-size:14px; color:#666; line-height:1.5; margin-bottom:24px; }
-    .figma-ready-url {
-      background:#f5f5f5; border-radius:8px; padding:10px 14px;
-      font-size:12px; color:#333; word-break:break-all;
-      margin-bottom:24px; text-align:left; font-family:monospace;
+    @keyframes cardIn { from { opacity:0; transform:scale(.93) translateY(8px); } to { opacity:1; transform:none; } }
+    .figma-card-icon { font-size:32px; margin-bottom:12px; }
+    .figma-card-title { font-size:18px; font-weight:700; color:#000; margin-bottom:6px; }
+    .figma-card-body  { font-size:13px; color:#666; line-height:1.55; margin-bottom:20px; }
+    .figma-prompt-box {
+      background:#f5f5f5; border-radius:10px; padding:11px 14px;
+      font-size:12px; color:#333; text-align:left; font-family:monospace;
+      margin-bottom:20px; word-break:break-all; line-height:1.5;
+      border:1.5px solid transparent;
+      transition:border-color .15s;
     }
-    .figma-ready-actions { display:flex; gap:10px; justify-content:center; }
+    .figma-prompt-box.copied { border-color:#000; }
+    .figma-card-actions { display:flex; gap:8px; justify-content:center; }
+    .figma-copy-btn {
+      flex:1; padding:11px 0; border-radius:100px; border:none; cursor:pointer;
+      font-family:'Sailec',-apple-system,sans-serif; font-size:13px; font-weight:600;
+      background:#000; color:#fff;
+      transition:background .15s cubic-bezier(0.4,0,0.2,1),
+                 transform .2s cubic-bezier(0.34,1.4,0.64,1);
+    }
+    .figma-copy-btn:hover { background:#222; transform:scale(1.02); }
+    .figma-copy-btn.done { background:#2d9e5e; }
+    .figma-close-btn {
+      padding:11px 18px; border-radius:100px; border:1.5px solid #e8e8e8;
+      background:transparent; cursor:pointer;
+      font-family:'Sailec',-apple-system,sans-serif; font-size:13px; font-weight:500; color:#555;
+      transition:background .15s, color .15s;
+    }
+    .figma-close-btn:hover { background:#f5f5f5; color:#000; }
 
     /* ── iPHONE FRAME ── */
     #iphone-frame {
@@ -231,15 +347,16 @@
     .dm-header { position:relative; height:210px; border-bottom:1px solid #dbdbdb; }
     .back-arrow { position:absolute; left:63px; top:94px; width:20px; height:38px; object-fit:contain; }
     .profile-area { position:absolute; left:151px; top:62px; display:flex; align-items:center; gap:26px; }
-    .profile-photo-wrap { position:relative; width:104px; height:104px; flex-shrink:0; }
-    .profile-photo { width:104px; height:104px; border-radius:50%; object-fit:cover; display:block; }
+    .profile-photo-wrap { position:relative; width:104px; height:104px; flex-shrink:0; border-radius:50%; overflow:hidden; }
+    .profile-photo { width:104px; height:104px; object-fit:cover; display:block; }
     .profile-replace-btn {
-      position:absolute; inset:0; background:rgba(0,0,0,.5); border-radius:50%;
+      position:absolute; inset:0; background:rgba(0,0,0,.5);
       display:flex; align-items:center; justify-content:center; opacity:0; cursor:pointer;
       transition:opacity .18s cubic-bezier(0.4,0,0.2,1);
       color:white; font-family:'Sailec',-apple-system,sans-serif; font-size:11px; font-weight:600; text-align:center;
     }
     .profile-photo-wrap:hover .profile-replace-btn { opacity:1; }
+    @media (hover:none) { .profile-photo-wrap .profile-replace-btn { opacity:0.85; } }
     .profile-name {
       font-family:'SF Pro Display',-apple-system,sans-serif;
       font-size:43px; font-weight:600; color:#000; letter-spacing:0; line-height:1.35; white-space:nowrap;
@@ -357,21 +474,24 @@
     .bubble-cont  { border-radius:20px 50px 50px 20px; }
 
     /* Photo message */
-    .photo-wrap { position:relative; width:447px; height:588px; flex-shrink:0; }
-    .food-photo { width:100%; height:100%; object-fit:cover; border-radius:20px 50px 50px 20px; display:block; }
+    .photo-wrap { position:relative; width:447px; height:588px; flex-shrink:0; overflow:hidden; border-radius:20px 50px 50px 20px; }
+    .food-photo { width:100%; height:100%; object-fit:cover; display:block; }
     .photo-replace-btn {
-      position:absolute; inset:0; background:rgba(0,0,0,.45); border-radius:20px 50px 50px 20px;
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+      position:absolute; inset:0; background:rgba(0,0,0,.45);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
       opacity:0; cursor:pointer;
       transition:opacity .18s cubic-bezier(0.4,0,0.2,1);
-      color:white; font-family:'Sailec',-apple-system,system-ui,sans-serif; font-size:14px; font-weight:600;
+      color:white; font-family:'Sailec',-apple-system,system-ui,sans-serif; font-size:22px; font-weight:600;
     }
+    .photo-replace-btn svg { width:40px; height:40px; }
     .photo-wrap:hover .photo-replace-btn { opacity:1; }
+    @media (hover:none) { .photo-wrap .photo-replace-btn { opacity:0.85; } }
     .photo-row { display:flex; gap:20px; align-items:center; }
     .reaction-dot { position:relative; width:80px; height:80px; flex-shrink:0; }
     .rdot-bg  { position:absolute; top:0; left:0; width:80px; height:80px; }
     .rdot-ico { position:absolute; top:26px; left:20px; width:40px; height:35px; object-fit:contain; mix-blend-mode:multiply; }
-    .reaction-pill-row { padding-left:130px; margin-top:-16px; position:relative; z-index:2; }
+    .reaction-pill-row { padding-left:120px; margin-top:-16px; position:relative; z-index:2; }
+    .reaction-pill-row--right { padding-left:0; padding-right:4px; margin-top:-16px; position:relative; z-index:2; }
     .reaction-pill {
       display:inline-flex; align-items:center; justify-content:center;
       background:#efefef; border:6px solid #fff; border-radius:50px;
@@ -401,6 +521,9 @@
     .bottom-banner { width:1138px; height:146px; margin:10px auto 20px; overflow:hidden; border-radius:8px; }
     .bottom-banner img { width:100%; height:100%; object-fit:cover; display:block; }
 
+    /* DM design fixed canvas width */
+    #dm-design { width:1200px; }
+
     /* Editable — no outlines, frosted glass hierarchy instead */
     [contenteditable] { outline:none !important; cursor:text; }
 
@@ -413,13 +536,33 @@
     body.editing-mode .msg-outer:not(.editing-active) {
       filter: blur(2.5px); opacity: 0.3;
     }
-    body.editing-mode .dm-header,
     body.editing-mode .bottom-banner,
     body.editing-mode .add-msg-bar {
       filter: blur(2.5px); opacity: 0.3;
     }
     body.editing-mode .editing-active {
       position: relative; z-index: 10;
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 1199px) {
+      body { overflow-x: hidden; }
+      #dm-design { transform-origin: top left; }
+    }
+    @media (max-width: 860px) {
+      /* Editor bar: hide hint, compact */
+      .editor-bar-hint  { display:none; }
+      .editor-bar       { padding:0 14px; gap:6px; }
+      .editor-bar-divider { display:none; }
+      /* Tighter tab bar */
+      #tab-bar { padding:0 10px; }
+      /* Participants panel: full-width drawer */
+      #participants-panel { width:100vw; }
+    }
+    @media (max-width: 500px) {
+      /* Very small screens: icon-only Send to Figma */
+      .btn-dark .btn-figma-label { display:none; }
+      .btn { padding:7px 10px; }
     }
   </style>
 </head>
@@ -428,28 +571,25 @@
 <!-- EDITOR BAR -->
 <div class="editor-bar">
   <div class="editor-bar-logo">
-    <div class="editor-bar-logo-dot">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="white">
-        <circle cx="6" cy="6" r="4.5" stroke="white" stroke-width="1.5" fill="none"/>
-        <circle cx="6" cy="6" r="1.5" fill="white"/>
-      </svg>
-    </div>
+    <img src="/icon.svg" class="editor-bar-logo-img" alt="Chef DMs">
     <span class="editor-bar-title">Chef DM</span>
   </div>
   <span class="editor-bar-hint">Click bubbles to edit · Hover for controls</span>
   <div class="editor-bar-right">
     <button class="btn btn-ghost" onclick="togglePanel()">Participants</button>
-    <button class="btn btn-ghost" onclick="newChat()">New Chat</button>
     <div class="editor-bar-divider"></div>
     <button class="btn btn-outline" onclick="enterPreview()">Preview</button>
     <button class="btn btn-dark" onclick="sendToFigma()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 19V5M5 12l7-7 7 7"/>
       </svg>
-      Send to Figma
+      <span class="btn-figma-label">Send to Figma</span>
     </button>
   </div>
 </div>
+
+<!-- TAB BAR (rendered by JS) -->
+<div id="tab-bar"></div>
 
 <!-- PARTICIPANTS PANEL -->
 <div id="participants-panel">
@@ -478,11 +618,29 @@
         <div class="p-avatar-btn" onclick="replaceParticipantAvatar('chef')">Change</div>
       </div>
       <div class="p-fields">
-        <div><div class="p-label">Display name</div>
+        <div><div class="p-label">Bubble label</div>
           <input class="p-input" id="p-chef-name" value="Chef" placeholder="Label" onchange="updateParticipantLabel('chef',this.value)">
         </div>
       </div>
     </div>
+
+    <div class="p-section-divider"></div>
+    <div class="p-section-label" style="margin-bottom:10px;">Header</div>
+    <div class="participant-card-header" style="margin-bottom:10px;">
+      <div class="p-avatar-wrap">
+        <img id="p-header-photo-thumb" class="p-avatar" src="https://www.figma.com/api/mcp/asset/b1e19405-436c-48c5-b9c1-053e8bc1356d" alt="">
+        <div class="p-avatar-btn" onclick="replaceHeaderPhoto()">Change</div>
+      </div>
+      <div class="p-fields">
+        <div><div class="p-label">Name</div>
+          <input class="p-input" id="p-chef-header-name" placeholder="Chef Name" oninput="updateChefHeaderName(this.value)">
+        </div>
+        <div><div class="p-label">Handle</div>
+          <input class="p-input" id="p-chef-header-handle" placeholder="chefhandle_" oninput="updateChefHeaderHandle(this.value)">
+        </div>
+      </div>
+    </div>
+
     <div class="p-color-row">
       <span class="p-label">Bubble color</span>
       <div class="p-color-swatches" id="chef-colors">
@@ -531,16 +689,16 @@
   </div>
 </div>
 
-<!-- SEND TO FIGMA OVERLAY -->
-<div id="figma-ready-overlay">
-  <div class="figma-ready-card">
-    <div class="figma-ready-icon">↑</div>
-    <div class="figma-ready-title">Ready to send</div>
-    <div class="figma-ready-body">A clean version of your chat is open at this URL. Ask Claude to "send this to Figma" to import it.</div>
-    <div class="figma-ready-url" id="figma-capture-url"></div>
-    <div class="figma-ready-actions">
-      <button class="btn btn-outline" onclick="closeFigmaOverlay()">Cancel</button>
-      <button class="btn btn-dark" onclick="copyFigmaUrl()">Copy URL</button>
+<!-- SEND TO FIGMA MODAL -->
+<div id="figma-overlay" onclick="if(event.target===this)closeFigmaOverlay()">
+  <div class="figma-card">
+    <div class="figma-card-icon">✦</div>
+    <div class="figma-card-title">Send to Figma</div>
+    <div class="figma-card-body">Copy the prompt below and paste it into Claude — it'll drop straight into <strong>Evergreen Editorial → Chef DMs</strong>.</div>
+    <div class="figma-prompt-box" id="figma-prompt-text"></div>
+    <div class="figma-card-actions">
+      <button class="figma-close-btn" onclick="closeFigmaOverlay()">Close</button>
+      <button class="figma-copy-btn" id="figma-copy-btn" onclick="copyFigmaPrompt()">Copy prompt</button>
     </div>
   </div>
 </div>
@@ -592,21 +750,17 @@
 // ─── ASSETS ──────────────────────────────────────────────────────────────────
 const A = {
   chefAvatar:   'https://www.figma.com/api/mcp/asset/39e2594a-38e4-4467-bf9d-bcd5b341c7cd',
+  profilePhoto: 'https://www.figma.com/api/mcp/asset/b1e19405-436c-48c5-b9c1-053e8bc1356d',
   reactionBg:   'https://www.figma.com/api/mcp/asset/462cb887-f7f1-47eb-a3c7-50a40a24abad',
   reactionIcon: 'https://www.figma.com/api/mcp/asset/3a1d0743-d68c-41ab-8103-c401f8e1faca',
+  // Figma target for "Send to Figma"
+  figmaFileKey: 'dr5wnwp3k3VWDd9YWPI7Qn',
+  figmaNodeId:  '27473:3626',
 };
 
 const EMOJI_OPTIONS = ['👌','❤️','🔥','😂','👍','😎','🙌','✨','🤌','💯'];
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let uid = 20;
-const participants = {
-  dorsia:  { id:'dorsia',  side:'right', color:'#584cf5', textColor:'#fff',  avatar:null,           label:'Dorsia' },
-  chef:    { id:'chef',    side:'left',  color:'#efefef', textColor:'#000',  avatar:A.chefAvatar,   label:'Chef'   },
-  person3: { id:'person3', side:'left',  color:'#d4f1eb', textColor:'#000',  avatar:null,           label:'Guest', active:false },
-};
-
-let messages = [
+const DEFAULT_MESSAGES = [
   { id:1,  from:'dorsia', type:'text',  text:"Hey chef, can't wait to check out your new spot. Anything on the must-order list?" },
   { id:2,  from:'chef',   type:'text',  text:"Chocolate, Bread, and Olive Oil. We scorch the top with a red-hot iron, and it's been a best seller since day one. People are surprised by the salty-sweet combo." },
   { id:3,  from:'dorsia', type:'text',  text:"Right to dessert, we're not mad at it. Any underrated gems to keep our eye on? 👀" },
@@ -621,6 +775,184 @@ let messages = [
   { id:12, from:'chef',   type:'text',  text:"You can pop in for a solo lunch at the counter and watch the chefs work, or come for a big Friday night with friends since the food is great for sharing." },
   { id:13, from:'dorsia', type:'text',  text:"Count us in 😎" },
 ];
+
+// ─── MULTI-CHAT STATE ─────────────────────────────────────────────────────────
+let uid = 20;
+
+function todayStr() {
+  return new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function makeChat(overrides = {}) {
+  return {
+    id: ++uid,
+    chefName: 'Chef Name',
+    venue: 'Restaurant',
+    date: todayStr(),
+    profilePhotoSrc: A.profilePhoto,
+    headerHandle: 'chefhandle_',
+    chefAvatarSrc: A.chefAvatar,
+    messages: [],
+    ...overrides,
+  };
+}
+
+let chats = [
+  makeChat({
+    id: 1,
+    chefName: 'Fardad Khayami',
+    venue: 'Restaurant Name',
+    date: 'Feb 26, 2026',
+    headerHandle: 'fardadk_',
+    messages: DEFAULT_MESSAGES.map(m => ({...m})),
+  }),
+];
+let activeChatId = 1;
+
+const participants = {
+  dorsia:  { id:'dorsia',  side:'right', color:'#584cf5', textColor:'#fff', avatar:null,          label:'Dorsia' },
+  chef:    { id:'chef',    side:'left',  color:'#efefef', textColor:'#000', avatar:A.chefAvatar,  label:'Chef'   },
+  person3: { id:'person3', side:'left',  color:'#d4f1eb', textColor:'#000', avatar:null,          label:'Guest', active:false },
+};
+
+// Working messages array — mirrors active chat
+let messages = chats[0].messages;
+
+function getActiveChat() {
+  return chats.find(c => c.id === activeChatId);
+}
+
+function saveCurrentChat() {
+  const chat = getActiveChat();
+  if (!chat) return;
+  chat.messages = messages.map(m => ({...m}));
+  const profileImg = document.getElementById('img-profile');
+  const nameEl = document.querySelector('.profile-name');
+  const handleEl = document.querySelector('.profile-handle');
+  if (profileImg) chat.profilePhotoSrc = profileImg.src;
+  if (nameEl)    chat.chefName = nameEl.innerText.trim();
+  if (handleEl)  chat.headerHandle = handleEl.innerText.trim();
+  chat.chefAvatarSrc = participants.chef.avatar || A.chefAvatar;
+}
+
+function loadChat(chatId) {
+  const chat = chats.find(c => c.id === chatId);
+  if (!chat) return;
+  activeChatId = chatId;
+  messages = chat.messages.map(m => ({...m}));
+
+  const profileImg = document.getElementById('img-profile');
+  const nameEl = document.querySelector('.profile-name');
+  const handleEl = document.querySelector('.profile-handle');
+  if (profileImg) profileImg.src = chat.profilePhotoSrc || A.profilePhoto;
+  if (nameEl)    nameEl.innerText = chat.chefName;
+  if (handleEl)  handleEl.innerText = chat.headerHandle;
+  participants.chef.avatar = chat.chefAvatarSrc || A.chefAvatar;
+  const panelAvatar = document.getElementById('p-chef-avatar');
+  if (panelAvatar) panelAvatar.src = participants.chef.avatar;
+
+  const panelHeaderName = document.getElementById('p-chef-header-name');
+  const panelHeaderHandle = document.getElementById('p-chef-header-handle');
+  const panelHeaderPhoto = document.getElementById('p-header-photo-thumb');
+  if (panelHeaderName) panelHeaderName.value = chat.chefName || '';
+  if (panelHeaderHandle) panelHeaderHandle.value = chat.headerHandle || '';
+  if (panelHeaderPhoto) panelHeaderPhoto.src = chat.profilePhotoSrc || A.profilePhoto;
+
+  render();
+  renderTabs();
+}
+
+function switchChat(chatId) {
+  if (chatId === activeChatId) return;
+  saveCurrentChat();
+  loadChat(chatId);
+}
+
+function newChat() {
+  saveCurrentChat();
+  const chat = makeChat();
+  chats.push(chat);
+  loadChat(chat.id);
+}
+
+function closeChat(chatId) {
+  if (chats.length === 1) return;
+  const idx = chats.findIndex(c => c.id === chatId);
+  if (chatId === activeChatId) {
+    const next = chats[idx > 0 ? idx - 1 : 1];
+    saveCurrentChat();
+    chats = chats.filter(c => c.id !== chatId);
+    loadChat(next ? next.id : chats[0].id);
+  } else {
+    chats = chats.filter(c => c.id !== chatId);
+    renderTabs();
+  }
+}
+
+function saveTabField(chatId, field, el) {
+  const chat = chats.find(c => c.id === chatId);
+  if (!chat) return;
+  chat[field] = el.innerText.trim() || (field === 'chefName' ? 'Chef Name' : field === 'venue' ? 'Restaurant' : todayStr());
+  if (field === 'chefName' && chatId === activeChatId) {
+    const nameEl = document.querySelector('.profile-name');
+    if (nameEl) nameEl.innerText = chat.chefName;
+  }
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── TAB RENDER ───────────────────────────────────────────────────────────────
+function renderTabs() {
+  const bar = document.getElementById('tab-bar');
+  if (!bar) return;
+
+  const tabsHtml = chats.map(chat => {
+    const isActive = chat.id === activeChatId;
+    const avatarBg = chat.profilePhotoSrc
+      ? `background-image:url('${chat.profilePhotoSrc}');background-size:cover;background-position:center;`
+      : 'background:#e0e0e0;';
+    const ce = isActive ? 'true' : 'false';
+    const stopProp = `event.stopPropagation()`;
+    const closeBtn = chats.length > 1
+      ? `<button class="tab-close" onclick="${stopProp};closeChat(${chat.id})" title="Close">
+           <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+             <line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/>
+           </svg>
+         </button>` : '';
+    return `
+      <div class="chat-tab${isActive ? ' active' : ''}" onclick="switchChat(${chat.id})">
+        <div class="tab-avatar" style="${avatarBg}"></div>
+        <div class="tab-info">
+          <span class="tab-name" contenteditable="${ce}" spellcheck="false"
+            onblur="saveTabField(${chat.id},'chefName',this)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+            onclick="${stopProp}">${escHtml(chat.chefName)}</span>
+          <div class="tab-meta">
+            <span class="tab-venue" contenteditable="${ce}" spellcheck="false"
+              onblur="saveTabField(${chat.id},'venue',this)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+              onclick="${stopProp}">${escHtml(chat.venue)}</span>
+            <span class="tab-sep">·</span>
+            <span class="tab-date" contenteditable="${ce}" spellcheck="false"
+              onblur="saveTabField(${chat.id},'date',this)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+              onclick="${stopProp}">${escHtml(chat.date)}</span>
+          </div>
+        </div>
+        ${closeBtn}
+      </div>`;
+  }).join('');
+
+  bar.innerHTML = `
+    <div class="tab-list">${tabsHtml}</div>
+    <button class="add-tab-btn" onclick="newChat()" title="New chat">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/>
+      </svg>
+    </button>`;
+}
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function render() {
@@ -640,18 +972,22 @@ function render() {
     const ctrlHtml = `<div class="msg-controls">${buildControls(msg, i)}</div>`;
 
     if (p.side === 'right') {
+      const reactionRight = msg.reaction
+        ? `<div class="reaction-pill-row--right"><div class="reaction-pill">${msg.reaction}</div></div>` : '';
       outer.innerHTML = ctrlHtml + `
         <div class="msg-right">
           <div class="bubble-right" contenteditable="true" spellcheck="false"
                style="background:${p.color};color:${p.textColor};"
                onblur="saveText(${msg.id},this)">${msg.text}</div>
-        </div>`;
+        </div>
+        ${reactionRight}`;
     } else {
       outer.innerHTML = ctrlHtml + buildLeftMessage(msg, p, isFirst);
     }
 
     container.appendChild(outer);
   });
+  if (window.innerWidth < 1200) scaleDmForMobile();
 }
 
 function buildControls(msg, i) {
@@ -801,17 +1137,17 @@ function changeSpeaker(id, newFrom) {
   if (msg) { msg.from = newFrom; render(); }
 }
 
-function newChat() {
-  if (!confirm('Clear all messages and start a new chat?')) return;
-  messages = [];
-  render();
-}
+// newChat() is defined above in multi-chat state section
 
 // ─── PHOTOS ──────────────────────────────────────────────────────────────────
 function replacePhoto(imgId) {
   pickFile(file => {
     const r = new FileReader();
-    r.onload = e => document.getElementById(imgId).src = e.target.result;
+    r.onload = e => {
+      document.getElementById(imgId).src = e.target.result;
+      getActiveChat().profilePhotoSrc = e.target.result;
+      renderTabs();
+    };
     r.readAsDataURL(file);
   });
 }
@@ -854,6 +1190,34 @@ function updateParticipantLabel(pid, val) {
   participants[pid].label = val || pid;
   render();
   updateAddBar();
+}
+
+function updateChefHeaderName(val) {
+  const nameEl = document.querySelector('.profile-name');
+  if (nameEl) nameEl.innerText = val;
+  const chat = getActiveChat();
+  if (chat) { chat.chefName = val; renderTabs(); }
+}
+
+function updateChefHeaderHandle(val) {
+  const handleEl = document.querySelector('.profile-handle');
+  if (handleEl) handleEl.innerText = val;
+  const chat = getActiveChat();
+  if (chat) chat.headerHandle = val;
+}
+
+function replaceHeaderPhoto() {
+  pickFile(file => {
+    const r = new FileReader();
+    r.onload = e => {
+      document.getElementById('img-profile').src = e.target.result;
+      const thumb = document.getElementById('p-header-photo-thumb');
+      if (thumb) thumb.src = e.target.result;
+      const chat = getActiveChat();
+      if (chat) chat.profilePhotoSrc = e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
 }
 
 function setParticipantColor(pid, el) {
@@ -900,23 +1264,28 @@ document.addEventListener('click', e => {
 
 // ─── SEND TO FIGMA ────────────────────────────────────────────────────────────
 function sendToFigma() {
-  const base = window.location.href.split('?')[0];
-  const captureUrl = base + '?figma=1';
-  document.getElementById('figma-capture-url').textContent = captureUrl;
-  document.getElementById('figma-ready-overlay').classList.add('show');
-  window.open(captureUrl, '_blank');
+  const captureUrl = window.location.origin + '/?figma=1';
+  document.getElementById('figma-prompt-text').textContent = `send ${captureUrl} to figma`;
+  document.getElementById('figma-overlay').classList.add('show');
 }
 
 function closeFigmaOverlay() {
-  document.getElementById('figma-ready-overlay').classList.remove('show');
+  document.getElementById('figma-overlay').classList.remove('show');
+  // Reset copy button in case it was clicked
+  const btn = document.getElementById('figma-copy-btn');
+  btn.textContent = 'Copy prompt';
+  btn.classList.remove('done');
+  document.getElementById('figma-prompt-text').classList.remove('copied');
 }
 
-function copyFigmaUrl() {
-  const url = document.getElementById('figma-capture-url').textContent;
-  navigator.clipboard.writeText(url).then(() => {
-    const btn = event.target;
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy URL'; }, 2000);
+function copyFigmaPrompt() {
+  const text = document.getElementById('figma-prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('figma-copy-btn');
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('done');
+    document.getElementById('figma-prompt-text').classList.add('copied');
+    setTimeout(closeFigmaOverlay, 1400);
   });
 }
 
@@ -1022,6 +1391,21 @@ document.addEventListener('focusin', e => {
 
 document.addEventListener('focusout', e => {
   if (!e.target.hasAttribute('contenteditable')) return;
+  // Sync header name/handle edits back to the active chat and panel
+  if (e.target.classList.contains('profile-name')) {
+    const chat = getActiveChat();
+    const val = e.target.innerText.trim();
+    if (chat && val) { chat.chefName = val; renderTabs(); }
+    const panelInput = document.getElementById('p-chef-header-name');
+    if (panelInput) panelInput.value = val;
+  }
+  if (e.target.classList.contains('profile-handle')) {
+    const chat = getActiveChat();
+    const val = e.target.innerText.trim();
+    if (chat) chat.headerHandle = val;
+    const panelInput = document.getElementById('p-chef-header-handle');
+    if (panelInput) panelInput.value = val;
+  }
   requestAnimationFrame(() => {
     if (document.querySelector('[contenteditable]:focus')) return;
     document.body.classList.remove('editing-mode');
@@ -1035,8 +1419,28 @@ window.addEventListener('load', () => {
   if (params.get('figma') === '1')   setTimeout(enterFigmaCapture, 300);
 });
 
+// ─── MOBILE SCALE ────────────────────────────────────────────────────────────
+function scaleDmForMobile() {
+  const dm = document.getElementById('dm-design');
+  const vw = window.innerWidth;
+  if (vw >= 1200) {
+    dm.style.transform = '';
+    dm.style.marginBottom = '';
+    return;
+  }
+  const scale = vw / 1200;
+  dm.style.transform = 'none';               // reset first to get true height
+  const naturalH = dm.offsetHeight;
+  dm.style.transform = `scale(${scale})`;
+  dm.style.marginBottom = `${-(naturalH * (1 - scale))}px`;
+}
+
+window.addEventListener('resize', scaleDmForMobile);
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 render();
+renderTabs();
+scaleDmForMobile();
 </script>
 </body>
 </html>
