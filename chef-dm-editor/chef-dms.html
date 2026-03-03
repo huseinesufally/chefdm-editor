@@ -15,8 +15,6 @@
     @font-face { font-family:'SF Pro Text'; src:local('SFProText-Semibold'),local('.SFProText-Semibold'); font-weight:600; }
     @font-face { font-family:'SF Pro Display'; src:local('SFProDisplay-Semibold'),local('.SFProDisplay-Semibold'); font-weight:600; }
 
-    --ui-font: 'Sailec', -apple-system, system-ui, sans-serif;
-
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 
     /* ── EDITOR BAR (light) ── */
@@ -253,8 +251,6 @@
     body.figma-capture-mode #tab-bar      { display:none; }
     body.preview-mode #participants-panel  { display:none; }
     body.figma-capture-mode #participants-panel { display:none; }
-    body.preview-mode body, body.figma-capture-mode body { padding-top:0; }
-    body.preview-mode { padding-top:60px; }
     body.figma-capture-mode { padding-top:0; }
     body.preview-mode .msg-controls        { display:none !important; }
     body.figma-capture-mode .msg-controls  { display:none !important; }
@@ -589,6 +585,7 @@
 
 <!-- EDITOR BAR -->
 <div class="editor-bar">
+  <a href="tony.html" class="btn btn-ghost" style="text-decoration:none;font-size:12px;padding:0 10px;margin-right:2px;">← Tony</a>
   <div class="editor-bar-logo">
     <img src="/icon.svg" class="editor-bar-logo-img" alt="Chef DMs">
     <span class="editor-bar-title">Chef DM</span>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tony — Design Studio</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    /* ── FONTS ── */
+    @font-face { font-family:'Sailec'; src:local('Sailec-Regular'),local('Sailec Regular'); font-weight:400; }
+    @font-face { font-family:'Sailec'; src:local('Sailec-Medium'),local('Sailec Medium'); font-weight:500; }
+    @font-face { font-family:'Sailec'; src:local('Sailec-Bold'),local('Sailec Bold'); font-weight:700; }
+
+    /* ── RESET & VARS ── */
+    :root {
+      --bg: #FAFAF8;
+      --card-bg: #fff;
+      --text: #111;
+      --text-secondary: #777;
+      --text-tertiary: #bbb;
+      --border: #ebebeb;
+      --accent: #584cf5;
+      --accent-hover: #4a3fe0;
+      --accent-light: rgba(88, 76, 245, 0.07);
+      --gold: #D4A574;
+      --radius-sm: 12px;
+      --radius-md: 20px;
+      --radius-lg: 28px;
+      --font-ui: 'Sailec', -apple-system, system-ui, sans-serif;
+      --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── BODY ── */
+    body {
+      background: var(--bg);
+      font-family: var(--font-ui);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+    }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(250, 250, 248, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .tony-mark {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 26px;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .tony-badge {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    .top-bar-right {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      letter-spacing: -0.1px;
+    }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 80px 48px 120px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      margin-bottom: 64px;
+      animation: heroIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 72px;
+      font-weight: 400;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 520px;
+      font-weight: 400;
+    }
+
+    /* ── TOOLS GRID (Bento) ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 20px;
+    }
+
+    /* ── TOOL CARD (shared) ── */
+    .tool-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition:
+        transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1),
+        box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.25s ease;
+    }
+
+    /* ── ACTIVE CARD ── */
+    .tool-card-active {
+      grid-row: 1 / 3;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .tool-card-active:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+      border-color: rgba(88, 76, 245, 0.25);
+    }
+
+    .tool-card-active:active {
+      transform: translateY(-2px);
+    }
+
+    /* Card preview area */
+    .card-preview {
+      position: relative;
+      padding: 48px 40px 40px;
+      background: linear-gradient(145deg, #f8f7ff 0%, #f0eeff 100%);
+      border-bottom: 1px solid var(--border);
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Mini DM mockup inside the card */
+    .dm-mockup {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transform: rotate(-1.5deg);
+      transition: transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    .tool-card-active:hover .dm-mockup {
+      transform: rotate(0deg) scale(1.03);
+    }
+
+    .mock-bubble {
+      padding: 14px 20px;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 400;
+      letter-spacing: -0.1px;
+    }
+
+    .mock-right {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 24px 24px 8px 24px;
+      max-width: 230px;
+    }
+
+    .mock-left-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .mock-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #ddd;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .mock-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .mock-left {
+      background: #efefef;
+      color: #000;
+      border-radius: 24px 24px 24px 8px;
+      max-width: 210px;
+    }
+
+    .mock-reaction {
+      align-self: flex-start;
+      margin-left: 42px;
+      margin-top: -8px;
+      background: #efefef;
+      border: 3px solid #f8f7ff;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 16px;
+      line-height: 1;
+      width: fit-content;
+    }
+
+    /* Card info area */
+    .card-info {
+      padding: 28px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .card-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      transition: gap 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    .tool-card-active:hover .card-action {
+      gap: 10px;
+    }
+
+    .card-action-arrow {
+      transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    .tool-card-active:hover .card-action-arrow {
+      transform: translateX(2px);
+    }
+
+    /* ── COMING SOON CARD ── */
+    .tool-card-soon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px 28px;
+      border-style: dashed;
+      border-color: #ddd;
+      background: rgba(255,255,255,0.5);
+    }
+
+    .soon-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: #f5f5f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      color: var(--text-tertiary);
+    }
+
+    .soon-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .soon-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      line-height: 1.5;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding: 0 48px 48px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      letter-spacing: -0.1px;
+    }
+
+    .footer-dot {
+      display: inline-block;
+      margin: 0 8px;
+      opacity: 0.4;
+    }
+
+    /* ── STAGGERED ENTRANCE ── */
+    .tool-card-active {
+      animation: cardUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+    .tool-card-soon:nth-child(2) {
+      animation: cardUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+    .tool-card-soon:nth-child(3) {
+      animation: cardUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.42s both;
+    }
+
+    @keyframes cardUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      main { padding: 48px 24px 80px; }
+      .top-bar { padding: 0 24px; }
+      .hero-title { font-size: 48px; }
+      .hero-sub { font-size: 15px; }
+      .tools-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .tool-card-active { grid-row: auto; }
+      .card-preview { padding: 36px 28px 32px; }
+      .dm-mockup { width: 260px; }
+    }
+
+    @media (max-width: 500px) {
+      main { padding: 32px 16px 60px; }
+      .top-bar { padding: 0 16px; height: 56px; }
+      .tony-mark { font-size: 22px; }
+      .hero-title { font-size: 36px; letter-spacing: -1px; }
+      .hero { margin-bottom: 40px; }
+      .card-info { padding: 22px 24px 26px; }
+      .card-title { font-size: 22px; }
+      .footer { padding: 0 16px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<nav class="top-bar">
+  <div class="top-bar-left">
+    <span class="tony-mark">Tony</span>
+    <span class="tony-badge">Studio</span>
+  </div>
+  <div class="top-bar-right">Dorsia Design Studio</div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1 class="hero-title">Design <em>Studio</em></h1>
+    <p class="hero-sub">Self-service tools for the content team. Create branded assets without design support.</p>
+  </div>
+
+  <!-- TOOLS GRID -->
+  <div class="tools-grid">
+
+    <!-- Chef DMs — active tool -->
+    <a href="chef-dms.html" class="tool-card tool-card-active">
+      <div class="card-preview">
+        <div class="dm-mockup">
+          <div class="mock-bubble mock-right">Can't wait to check out your new spot. Anything on the must-order list?</div>
+          <div class="mock-left-row">
+            <div class="mock-avatar">
+              <img src="https://www.figma.com/api/mcp/asset/39e2594a-38e4-4467-bf9d-bcd5b341c7cd" alt="">
+            </div>
+            <div class="mock-bubble mock-left">Chocolate, Bread, and Olive Oil. We scorch the top with a red-hot iron.</div>
+          </div>
+          <div class="mock-reaction">👌</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <span class="card-label">Ready to use</span>
+        <h2 class="card-title">Chef DMs</h2>
+        <p class="card-desc">Create custom Instagram DM screenshots for chef features. Edit conversations, swap photos, and export to Figma.</p>
+        <span class="card-action">
+          Open Editor
+          <svg class="card-action-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+
+    <!-- Coming soon 1 -->
+    <div class="tool-card tool-card-soon">
+      <div class="soon-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
+      <div class="soon-title">More tools coming</div>
+      <div class="soon-desc">Story cards, menu features, event promos — all in the works.</div>
+    </div>
+
+    <!-- Coming soon 2 -->
+    <div class="tool-card tool-card-soon">
+      <div class="soon-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </div>
+      <div class="soon-title">Have an idea?</div>
+      <div class="soon-desc">Got a recurring asset you always need? Let us know and we'll build it.</div>
+    </div>
+
+  </div><!-- /tools-grid -->
+
+</main>
+
+<!-- FOOTER -->
+<div class="footer">
+  Tony <span class="footer-dot">·</span> Dorsia Design Studio
+</div>
+
+</body>
+</html>
